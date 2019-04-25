@@ -6,12 +6,14 @@ columna = 0
 turno = 0
 
 class jugador:
-    def __init__(self):
+    def __init__(self, turno):
     	self.filas = 0
     	self.columnas = 0
     	self.diagonales = 0
     	self.enZ = 0
-	
+    	self.turn = turno
+
+
 def quedanFichas(T: [[[int]]]) -> bool:
 	hayFichas = any( any( any(T[i][j][k]==0 for k in range(0, N)) for j in range(0, N)) for i in range(0, N) )
 	return hayFichas
@@ -28,37 +30,39 @@ def hayLineaVertical(T: [[[int]]], tablero: int ,columna: int , turno: int) -> b
 	lineaVertical = all( T[tablero][i][columna]==turno for i in range(0, len(T)) )
 	return lineaVertical
 
-def hayLineaDiagonal(T: [[int]], tablero: int , fila: int, columna: int, turno: int) -> bool:
+def hayLineaDiagonal(T: [[[int]]], tablero: int , fila: int, columna: int, turno: int) -> bool:
 	lineaDiagonal = False
 	if fila == columna:
 		lineaDiagonal = all( T[tablero][i][i]==turno for i in range(0, len(T)) )
 	return lineaDiagonal
-	
-def hayLineaDiagonalInversa(T: [[int]], tablero: int , fila: int, columna: int, turno: int) -> bool:
+
+def hayLineaDiagonalInversa(T: [[[int]]], tablero: int , fila: int, columna: int, turno: int) -> bool:
 	if fila + columna == N-1:
-		return all( T[tablero][i][N-1-i]==turno for i in range(0, N)
+		return all( T[tablero][i][N-1-i]==turno for i in range(0, N) )
 	else:
 		return False
-			   
+
 def hayLineaEnZ(T: [[[int]]], fila: int, columna: int, turno: int) -> bool:
 	lineaEnZ = all( T[i][fila][columna]==turno for i in range(0, len(T)) )
 	return lineaEnZ
 
 
-def hayLinea(T, N, jugador, fila, columna, tablero):
-	if hayLineaHorizontal(T,Tablero,fila,jug):
+def hayLinea(T: [[[int]]], tablero: int, fila: int, columna: int, player: jugador):
+	if hayLineaHorizontal(T, tablero, fila, player.turn):
 		jugador.filas += 1
-	if hayLineaVertical(T,Tablero,fila,jug):
+	if hayLineaVertical(T, tablero, columna, player.turn):
 		jugador.columnas += 1
-	if hayLineaDiagonal(T,Tablero,jug):
+	if hayLineaDiagonal(T, tablero, fila, columna, player.turn):
 		jugador.diagonales += 1
-	if hayLineaDiagonalInversa(T,Tablero,jug):
+	if hayLineaDiagonalInversa(T, tablero, fila, columna, player.turn):
 		jugador.diagonales += 1
-	if hayLineaEnZ(T,fila,columna,turno):
+	if hayLineaEnZ(T, fila, columna, player.turn):
 		jugador.enZ += 1
 
 
 def pedirJugada():
 
 if hayLinea():
-sumarLineas()
+	sumarLineas()
+
+
