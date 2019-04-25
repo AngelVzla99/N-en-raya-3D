@@ -63,7 +63,5 @@ def hayLinea(T: [[[int]]], tablero: int, fila: int, columna: int, player: jugado
 
 def pedirJugada():
 
-if hayLinea():
-	sumarLineas()
 
 
