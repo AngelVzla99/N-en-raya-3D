@@ -11,8 +11,7 @@ class jugador:
     	self.columnas = 0
     	self.diagonales = 0
     	self.enZ = 0
-
-
+	
 def quedanFichas(T: [[[int]]]) -> bool:
 	hayFichas = any( any( any(T[i][j][k]==0 for k in range(0, N)) for j in range(0, N)) for i in range(0, N) )
 	return hayFichas
@@ -36,23 +35,27 @@ def hayLineaDiagonal(T: [[int]], tablero: int , fila: int, columna: int, turno: 
 	return lineaDiagonal
 	
 def hayLineaDiagonalInversa(T: [[int]], tablero: int , fila: int, columna: int, turno: int) -> bool:
-	
+	if fila + columna == N-1:
+		return all( T[tablero][i][N-1-i]==turno for i in range(0, N)
+	else:
+		return False
+			   
 def hayLineaEnZ(T: [[[int]]], fila: int, columna: int, turno: int) -> bool:
 	lineaEnZ = all( T[i][fila][columna]==turno for i in range(0, len(T)) )
 	return lineaEnZ
+
 
 def hayLinea(T, N, jugador, fila, columna, tablero):
 	if hayLineaHorizontal(T,Tablero,fila,jug):
 		jugador.filas += 1
 	if hayLineaVertical(T,Tablero,fila,jug):
 		jugador.columnas += 1
-	if fila == columna:
-		if hayLineaDiagonal(T,Tablero,jug):
-			jugador.diagonales += 1
-	if fila + columna == N-1:
-		if hayLineaDiagonalInversa(T,Tablero,jug):
-			jugador.diagonales += 1
-	if 
+	if hayLineaDiagonal(T,Tablero,jug):
+		jugador.diagonales += 1
+	if hayLineaDiagonalInversa(T,Tablero,jug):
+		jugador.diagonales += 1
+	if hayLineaEnZ(T,fila,columna,turno):
+		jugador.enZ += 1
 
 
 def pedirJugada():
