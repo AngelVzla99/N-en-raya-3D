@@ -6,13 +6,14 @@ columna = 0
 turno = 0
 
 class jugador:
-    def __init__(self, N, nombre):
-	self.nombre = nombre
+    def __init__(self, N, nombre, turno):
+    	self.nombre = nombre
     	self.filas = 0
     	self.columnas = 0
     	self.diagonales = 0
     	self.enZ = 0
-	self.fichas = N//2
+    	self.turn = turno
+    	self.fichas = N//2
 
 
 def quedanFichas(T: [[[int]]]) -> bool:
@@ -48,16 +49,16 @@ def hayLineaEnZ(T: [[[int]]], fila: int, columna: int, turno: int) -> bool:
 	return lineaEnZ
 
 
-def hayLinea(T: [[[int]]], turno: int, tablero: int, fila: int, columna: int, player: jugador):
-	if hayLineaHorizontal(T, tablero, fila, turno):
+def hayLinea(T: [[[int]]], tablero: int, fila: int, columna: int, player: jugador):
+	if hayLineaHorizontal(T, tablero, fila, player.turn):
 		jugador.filas += 1
-	if hayLineaVertical(T, tablero, columna, turno):
+	if hayLineaVertical(T, tablero, columna, player.turn):
 		jugador.columnas += 1
-	if hayLineaDiagonal(T, tablero, fila, columna, turno):
+	if hayLineaDiagonal(T, tablero, fila, columna, player.turn):
 		jugador.diagonales += 1
-	if hayLineaDiagonalInversa(T, tablero, fila, columna, turno):
+	if hayLineaDiagonalInversa(T, tablero, fila, columna, player.turn):
 		jugador.diagonales += 1
-	if hayLineaEnZ(T, fila, columna, turno):
+	if hayLineaEnZ(T, fila, columna, player.turn):
 		jugador.enZ += 1
 
 
