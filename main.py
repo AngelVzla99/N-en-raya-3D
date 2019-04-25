@@ -24,9 +24,17 @@ def esValida(T: [[[int]]], tablero: int, fila: int, columna: int) -> bool:
 def hayLineaHorizontal(T: [[[int]]], tablero: int, fila: int, turno: int) -> bool:
 	lineaHorizontal = all( T[tablero][fila][i]==turno for i in range(0, len(T)) )
 	return lineaHorizontal
+
 def hayLineaVertical(T: [[[int]]], tablero: int ,columna: int , turno: int) -> bool:
-	lineaVertical = all()
+	lineaVertical = all( T[tablero][i][columna]==turno for i in range(0, len(T)) )
+	return lineaVertical
+
 def hayLineaDiagonal(T: [[int]], tablero: int , fila: int, columna: int, turno: int) -> bool:
+	lineaDiagonal = False
+	if fila == columna:
+		lineaDiagonal = all( T[tablero][i][i]==turno for i in range(0, len(T)) )
+	return lineaDiagonal
+	
 def hayLineaDiagonalInversa(T: [[int]], tablero: int , fila: int, columna: int, turno: int) -> bool:
 def hayLineaEnZ(T: [[[int]]], fila: int, columna: int, turno: int) -> bool:
 
