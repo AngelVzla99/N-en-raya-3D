@@ -6,7 +6,8 @@ columna = 0
 turno = 0
 
 class jugador:
-    def __init__(self, N):
+    def __init__(self, N, nombre):
+	self.nombre = nombre
     	self.filas = 0
     	self.columnas = 0
     	self.diagonales = 0
