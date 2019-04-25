@@ -36,7 +36,10 @@ def hayLineaDiagonal(T: [[int]], tablero: int , fila: int, columna: int, turno: 
 	return lineaDiagonal
 	
 def hayLineaDiagonalInversa(T: [[int]], tablero: int , fila: int, columna: int, turno: int) -> bool:
+	
 def hayLineaEnZ(T: [[[int]]], fila: int, columna: int, turno: int) -> bool:
+	lineaEnZ = all( T[i][fila][columna]==turno for i in range(0, len(T)) )
+	return lineaEnZ
 
 def hayLinea(T, N, jugador, fila, columna, tablero):
 	if hayLineaHorizontal(T,Tablero,fila,jug):
