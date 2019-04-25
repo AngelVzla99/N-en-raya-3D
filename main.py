@@ -39,7 +39,7 @@ def hayLineaDiagonal(T: [[[int]]], tablero: int , fila: int, columna: int, turno
 
 def hayLineaDiagonalInversa(T: [[[int]]], tablero: int , fila: int, columna: int, turno: int) -> bool:
 	if fila + columna == N-1:
-		return all( T[tablero][i][N-1-i]==turno for i in range(0, N) )
+		return all( T[tablero][i][N-1-i]==turno for i in range(0, len(T)) )
 	else:
 		return False
 
