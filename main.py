@@ -6,12 +6,13 @@ columna = 0
 turno = 0
 
 class jugador:
-    def __init__(self, turno):
+    def __init__(self, turno, N):
     	self.filas = 0
     	self.columnas = 0
     	self.diagonales = 0
     	self.enZ = 0
     	self.turn = turno
+	self.fichas = N//2
 
 
 def quedanFichas(T: [[[int]]]) -> bool:
