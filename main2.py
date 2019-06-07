@@ -1,4 +1,5 @@
 import pygame, subprocess
+import random
 from random import randint
 from pygame.locals import *
 
@@ -11,10 +12,10 @@ from pygame.locals import *
 # Autor:
 #		Amin Arriaga y Angel Garces
 #
-# Ultima modificacion: 27/04/2019
+# Ultima modificacion: 31/05/2019
 
 
-########################################### CLASE JUGADOR ################################################
+########################################### CLASE JUGADOR #####################################################
 class Jugador:
     def __init__(self, nombre, turno):
     	# Guardamos el nombre del Jugador
@@ -39,7 +40,7 @@ class Jugador:
     	self.wins = 0
 
 
-############################# CONSTANTES REFERENTE A LA RESOLUCION DE LA PANTALLA #######################
+############################# CONSTANTES REFERENTE A LA RESOLUCION DE LA PANTALLA #############################
 resolucion = [1366,750]
 largo = 680
 alto = 375
@@ -49,7 +50,7 @@ reloj1 = pygame.time.Clock()
 
 
 
-############################# IMAGENES QUE SE USARAN EN EL JUEGO #########################################
+############################# IMAGENES QUE SE USARAN EN EL JUEGO ##############################################
 titulo = pygame.image.load("probandoTitulo.jpg")
 titulo = pygame.transform.scale(titulo, (int(resolucion[0]/2.5), int(resolucion[1]/3)))
 triangulo = pygame.image.load("Triangulo.png")
@@ -63,16 +64,17 @@ fondo = pygame.transform.scale(fondo, resolucion)
 
 
 
-############################# FUENTES DE TEXTO ##############################################################
+############################# FUENTES DE TEXTO ################################################################
 subtitulos = pygame.font.Font("ka1.ttf", 50)
 nombres = pygame.font.Font("ArcadeClassic.ttf", 70)
 texto = pygame.font.Font("miracle.otf", 30)
 
 
 
-############################# TEXTOS QUE SE USARAN EN EL JUEGO ###############################################
+############################# TEXTOS QUE SE USARAN EN EL JUEGO ################################################
 Jugador1 = subtitulos.render("Jugador 1: ", True, (0,0,0))
 Jugador2 = subtitulos.render("Jugador 2: ", True, (0,0,0))
+JugadorSolo = subtitulos.render("Jugador: ", True, (0,0,0))
 Horizontal = texto.render("Lineas  Horizontales ", True, (0,0,0))
 Vertical = texto.render("Lineas  Verticales ", True, (0,0,0))
 Diagonal = texto.render("Lineas  Diagonales ", True, (0,0,0))
@@ -84,55 +86,60 @@ Col = texto.render("Columna ", True, (0,0,0))
 MultJug = subtitulos.render("Multijugador", True, (0,0,0))
 Computer = subtitulos.render("Individual", True, (0,0,0))
 Exit = subtitulos.render("Salir", True, (0,0,0))
-NumDim = subtitulos.render("Dimension del Tablero: ", True, (0,0,0))
+NumDim = subtitulos.render("Dimension  del  Tablero: ", True, (0,0,0))
 Yes = texto.render("Si", True, (0,0,0))
 Not = texto.render("No", True, (0,0,0))
+YES = subtitulos.render("Si", True, (0,0,0))
+NOT = subtitulos.render("No", True, (0,0,0))
+Salir = texto.render("Salir", True, (0,0,0))
+AsegurarSalida = texto.render("¿Esta seguro que desea salir?", True, (0,0,0))
+AsegurarGuardar = texto.render("¿Desea guardar esta partida? Se eliminara la anterior.", True, (0,0,0))
+CargarPartida = subtitulos.render("¿Desean  cargar  la  ultima  partida?", True, (0,0,0))
 
 
 
-
-############################################## SUBPROGRAMAS ######################################################
+############################################## SUBPROGRAMAS ###################################################
 def quedanFichas(T: [[[int]]]) -> bool:
-	# Verifica si aun hay algun espacio donde se pueda colocar fichas en el supertablero
+	""" Verifica si aun hay algun espacio donde se pueda colocar fichas en el supertablero"""
 
 	hayFichas = any( any( any(T[i][j][k]==0 for k in range(0, len(T))) for j in range(0, len(T))) for i in range(0, len(T)) )
 	return hayFichas
 
 def esValida(T: [[[int]]], tablero: int, fila: int, columna: int) -> bool:
-	# Verifica si la posicion donde se desea jugar es valida. Una jugada se considera valida si no hay ninguna ficha en la posicion indicada
+	"""Verifica si la posicion donde se desea jugar es valida. Una jugada se considera valida si no hay ninguna ficha en la posicion indicada"""
 
 	if tablero > len(T)-1 or tablero < 0 or fila > len(T)-1 or fila < 0 or columna > len(T)-1 or columna < 0:
 		return False
 	valido = (T[tablero][fila][columna] == 0)
 	return valido
 
-def hayLineaHorizontal(T: [[[int]]], tablero: int, fila: int, player: Jugador) -> bool:
-	# Verifica si se formo una linea horizontal en la posicion donde se realizo la jugada
-	turno = player.turn
+def hayLineaHorizontal(T: [[[int]]], tablero: int, fila: int, player: Jugador, minimax: bool) -> bool:
+	""" Verifica si se formo una linea horizontal en la posicion donde se realizo la jugada"""
 
+	turno = player.turn
 	lineaHorizontal = all( T[tablero][fila][i]==turno for i in range(0, len(T)) )
 
 	# Guardamos la posicion donde el jugador hizo una linea
-	if lineaHorizontal:
-		print("Hola")
+	if lineaHorizontal and not minimax:
 		player.lineasFila.append([tablero, fila])
 
 	return lineaHorizontal
 
-def hayLineaVertical(T: [[[int]]], tablero: int ,columna: int , player: Jugador) -> bool:
-	# Verifica si se formo una linea vertical en la posicion donde se realizo la jugada
-	turno = player.turn
+def hayLineaVertical(T: [[[int]]], tablero: int ,columna: int , player: Jugador, minimax: bool) -> bool:
+	""" Verifica si se formo una linea vertical en la posicion donde se realizo la jugada"""
 
+	turno = player.turn
 	lineaVertical = all( T[tablero][i][columna]==turno for i in range(0, len(T)) )
 
 	# Guardamos la posicion donde el jugador hizo una linea
-	if lineaVertical:
+	if lineaVertical and not minimax:
 		player.lineasCol.append([tablero, columna])
 
 	return lineaVertical
 
-def hayLineaDiagonal(T: [[[int]]], tablero: int , fila: int, columna: int, player: Jugador) -> bool:
-	# Verifica si se formo una linea en la diagonal principal en la posicion donde se realizo la jugada
+def hayLineaDiagonal(T: [[[int]]], tablero: int , fila: int, columna: int, player: Jugador, minimax: bool) -> bool:
+	""" Verifica si se formo una linea en la diagonal principal en la posicion donde se realizo la jugada"""
+
 	turno = player.turn
 
 	lineaDiagonal = False
@@ -140,13 +147,14 @@ def hayLineaDiagonal(T: [[[int]]], tablero: int , fila: int, columna: int, playe
 		lineaDiagonal = all( T[tablero][i][i]==turno for i in range(0, len(T)) )
 
 	# Guardamos la posicion donde el jugador hizo una linea
-	if lineaDiagonal:
-		player.lineasDiag.append([tablero, True])
+	if lineaDiagonal and not minimax:
+		player.lineasDiag.append([tablero, 1])
 
 	return lineaDiagonal
 
-def hayLineaDiagonalInversa(T: [[[int]]], tablero: int , fila: int, columna: int, player: Jugador) -> bool:
-	# Verifica si se formo una linea en la diagonal inversa en la posicion donde se realizo la jugada
+def hayLineaDiagonalInversa(T: [[[int]]], tablero: int , fila: int, columna: int, player: Jugador, minimax: bool) -> bool:
+	""" Verifica si se formo una linea en la diagonal inversa en la posicion donde se realizo la jugada"""
+
 	turno = player.turn
 
 	lineaDiagonal = False
@@ -154,41 +162,47 @@ def hayLineaDiagonalInversa(T: [[[int]]], tablero: int , fila: int, columna: int
 		lineaDiagonal = all( T[tablero][i][len(T)-1-i]==turno for i in range(0, len(T)) )
 	
 	# Guardamos la posicion donde el jugador hizo una linea
-	if lineaDiagonal:
-		player.lineasDiag.append([tablero, False])
+	if lineaDiagonal and not minimax:
+		player.lineasDiag.append([tablero, 0])
 
 	return lineaDiagonal
 
-def hayLineaEnZ(T: [[[int]]], fila: int, columna: int, player: Jugador) -> bool:
-	# Verifica si se formo una linea en todos los tableros en la posicion donde se realizo la jugada
-	turno = player.turn
+def hayLineaEnZ(T: [[[int]]], fila: int, columna: int, player: Jugador, minimax: bool) -> bool:
+	""" Verifica si se formo una linea en todos los tableros en la posicion donde se realizo la jugada"""
 
+	turno = player.turn
 	lineaEnZ = all( T[i][fila][columna]==turno for i in range(0, len(T)) )
+
+	# Guardamos la posicion donde el jugador hizo una linea
+	if lineaEnZ and not minimax:
+		player.lineasEnZ.append([fila, columna])
+
 	return lineaEnZ
 
 def reflejarJugada(A: [[[int]]], tablero: int, fila: int, columna: int, turno: int):
-	# Modifica el supertablero, reflejando la jugada realizada por cierto jugador
+	""" Modifica el supertablero, reflejando la jugada realizada por cierto jugador"""
 
 	A[tablero][fila][columna] = turno
 
 def hayLinea(T: [[[int]]], tablero: int, fila: int, columna: int, player: Jugador) -> str:
-	# Verifica si se formo alguna linea, en caso de ser asi, se lo indica a los jugadores y actualiza el contador de lineas
+	""" Verifica si se formo alguna linea, en caso de ser asi, se lo indica a los jugadores y actualiza el contador de lineas"""
 
-	masPuntos = False
-	if hayLineaHorizontal(T, tablero, fila, player):
-		print("Hize linea horizontal")
+	masPuntos = False # Esta variable se usa para indicarle a los jugadores si alguin hizo una o varias lineas
+
+	# Se usan muchos if y no if/elif/else ya que se debe sumar puntos por cada linea hecha
+	if hayLineaHorizontal(T, tablero, fila, player, False):
 		player.filas += 1
 		masPuntos = True
-	if hayLineaVertical(T, tablero, columna, player):
+	if hayLineaVertical(T, tablero, columna, player, False):
 		player.columnas += 1
 		masPuntos = True
-	if hayLineaDiagonal(T, tablero, fila, columna, player):
+	if hayLineaDiagonal(T, tablero, fila, columna, player, False):
 		player.diagonales += 1
 		masPuntos = True
-	if hayLineaDiagonalInversa(T, tablero, fila, columna, player):
+	if hayLineaDiagonalInversa(T, tablero, fila, columna, player, False):
 		player.diagonales += 1
 		masPuntos = True
-	if hayLineaEnZ(T, fila, columna, player):
+	if hayLineaEnZ(T, fila, columna, player, False):
 		player.enZ += 1
 		masPuntos = True
 
@@ -198,20 +212,19 @@ def hayLinea(T: [[[int]]], tablero: int, fila: int, columna: int, player: Jugado
 		return ""
 
 def mostarPuntajes(player1: Jugador, player2: Jugador):
-	# Muestra graficamente el puntaje de cada jugador
-
+	""" Muestra graficamente el puntaje de cada jugador"""
 
 	pantalla.blit(fondo, [0, 0]) 
 
 	# Guardamos en vairables del tipo "surface" los datos del jugador 1
-	name1 = subtitulos.render(str(player1.nombre), True, (0,0,0))
+	name1 = subtitulos.render(str(player1.nombre) + " - " + str(player1.wins), True, (0,0,0))
 	PFilas1 = texto.render(str(player1.filas), True, (0,0,0))
 	PCol1 = texto.render(str(player1.columnas), True, (0,0,0))
 	PDia1 = texto.render(str(player1.diagonales), True, (0,0,0))
 	PenZ1 = texto.render(str(player1.enZ), True, (0,0,0))
 
 	# Guardamos en vairables del tipo "surface" los datos del jugador 2
-	name2 = subtitulos.render(str(player2.nombre), True, (0,0,0))
+	name2 = subtitulos.render(str(player2.nombre) + " - " + str(player2.wins), True, (0,0,0))
 	PFilas2 = texto.render(str(player2.filas), True, (0,0,0))
 	PCol2 = texto.render(str(player2.columnas), True, (0,0,0))
 	PDia2 = texto.render(str(player2.diagonales), True, (0,0,0))
@@ -240,7 +253,7 @@ def mostarPuntajes(player1: Jugador, player2: Jugador):
 	pantalla.blit(PenZ2, [1200, 170])
 
 def dibujarTab(Tab: [[int]], player1: Jugador, player2: Jugador, tablero: int):
-	# Muestra graficamente el tablero actual, con las correspondientes fichas de ambos jugadores
+	""" Muestra graficamente el tablero actual, con las correspondientes fichas de ambos jugadores"""
 
 	# Cargamos las imagenes de la X y el O. No se hizo antes pues su tamanyo depende de la dimensaion del tablero
 	equis = pygame.image.load("Equis.png")
@@ -266,18 +279,46 @@ def dibujarTab(Tab: [[int]], player1: Jugador, player2: Jugador, tablero: int):
 				pantalla.blit(circulo, [100 + j*(largo/len(Tab)) + 2, 320 + i*(alto/len(Tab)) + 2])
 
 	# Dibujamos las lineas correspondientes al Jugador 1
+	# Lineas Horizontales
 	for linea in player1.lineasFila:
 		if linea[0] == tablero:
-			pygame.draw.line(pantalla, (255,0,0), [100, 320 + (linea[1] + 1/2)*(alto/len(Tab))], [100+largo, 320 + (linea[1] + 1/2)*(alto/len(Tab))], 4)
+			pygame.draw.line(pantalla, (255,((1-player1.turn)**2)*255,0), [100, 320 + (linea[1] + 1/2)*(alto/len(Tab))], [100+largo, 320 + (linea[1] + 1/2)*(alto/len(Tab))], 4)
+	# Lineas Verticales
+	for linea in player1.lineasCol:
+		if linea[0] == tablero:
+			pygame.draw.line(pantalla, (255,((1-player1.turn)**2)*255,0), [100 + (linea[1] + 1/2)*(largo/len(Tab)), 320], [100 + (linea[1] + 1/2)*(largo/len(Tab)), 320 + alto], 4)
+	# Lineas Diagonales
+	for linea in player1.lineasDiag:
+		if (linea[0] == tablero) and (linea[1] == 1):
+			pygame.draw.line(pantalla, (255,((1-player1.turn)**2)*255,0), [100, 320], [100 + largo, 320 + alto], 4)
+		elif (linea[0] == tablero) and (linea[1] == 0):
+			pygame.draw.line(pantalla, (255,((1-player1.turn)**2)*255,0), [100 + largo, 320], [100, 320 + alto], 4)
+	# Lineas entre Tableros
+	for linea in player1.lineasEnZ:
+		pygame.draw.rect(pantalla, (255,((1-player1.turn)**2)*255,0), [100 + linea[1]*(largo/len(Tab)), 320 + linea[0]*(alto/len(Tab)), largo/(len(Tab)), alto/(len(Tab))], 4)
 
+
+	# Dibujamos las lineas correspondientes al Jugador 2
+	# Lineas Horizontales
 	for linea in player2.lineasFila:
 		if linea[0] == tablero:
-			pygame.draw.line(pantalla, (255,0,0), [100, 320 + (linea[1] + 1/2)*(alto/len(Tab))], [100+largo, 320 + (linea[1] + 1/2)*(alto/len(Tab))], 4)
+			pygame.draw.line(pantalla, (255,((1-player2.turn)**2)*255,0), [100, 320 + (linea[1] + 1/2)*(alto/len(Tab))], [100+largo, 320 + (linea[1] + 1/2)*(alto/len(Tab))], 4)
+	# Lineas Verticales
+	for linea in player2.lineasCol:
+		if linea[0] == tablero:
+			pygame.draw.line(pantalla, (255,((1-player2.turn)**2)*255,0), [100 + (linea[1] + 1/2)*(largo/len(Tab)), 320], [100 + (linea[1] + 1/2)*(largo/len(Tab)), 320 + alto], 4)
+	# Lineas Diagonales
+	for linea in player2.lineasDiag:
+		if (linea[0] == tablero) and (linea[1] == 1):
+			pygame.draw.line(pantalla, (255,((1-player2.turn)**2)*255,0), [100, 320], [100 + largo, 320 + alto], 4)
+		elif (linea[0] == tablero) and (linea[1] == 0):
+			pygame.draw.line(pantalla, (255,((1-player2.turn)**2)*255,0), [100 + largo, 320], [100, 320 + alto], 4)
+	# Lineas entre Tableros
+	for linea in player2.lineasEnZ:
+		pygame.draw.rect(pantalla, (255,((1-player2.turn)**2)*255,0), [100 + linea[1]*(largo/len(Tab)), 320 + linea[0]*(alto/len(Tab)), largo/(len(Tab)), alto/(len(Tab))], 4)
 
-
-
-def jugada(T: [[[int]]], player1: Jugador, player2: Jugador, IndJug, Mensaje) -> (int, int, int):
-	# Le pedimos a un jugador la jugada que realizara
+def jugada(T: [[[int]]], player1: Jugador, player2: Jugador, IndJug, Mensaje, turno: int, bot: bool) -> (int, int, int, bool):
+	"""Le pedimos a un jugador la jugada que realizara"""
 
 	# Sera el texto que se mostrara en la interfaz, e indica lo que va escribiendo el jugador
 	tablero = "0"
@@ -288,50 +329,161 @@ def jugada(T: [[[int]]], player1: Jugador, player2: Jugador, IndJug, Mensaje) ->
 	Etablero = True
 	Ecolumna = False
 	Efila = False
+	opcSalir = False
+	salir = False
+	guardar = False
 
 	# Indica si el jugador ya termino de elegir
 	done = False
 
+	# Variable para hacer aparecer y desaparecer la barra que indica donde debe escribir
+	time = 0
+
 	# Variable que mueve la flecha para indicar al jugador en que tablero se encuentra
 	k = 0
+
+	# Variable que mueve la flecha para indicar al jugador si esta en la opcion "si" o "no"
+	m = 0
 
 	while not done:
 		for evt in pygame.event.get():
 			if evt.type == KEYDOWN:
-				if evt.unicode.isnumeric() and int(tablero) < 3 and Etablero:
-					tablero += evt.unicode
-				elif evt.key == K_BACKSPACE and Etablero and len(tablero) > 1:
-					tablero = tablero[:-1]
-				elif evt.key == K_RETURN and Etablero and len(tablero) > 1:
-					Etablero = False
-					Efila = True
+				if guardar:
+					if evt.key == K_RIGHT:
+						m = 1
+					if evt.key == K_LEFT:
+						m = 0
+					if evt.key == K_RETURN and m == 0 and not bot:
+						# Se decidio a salir y guardar la partida multijugador, por lo que procedemos a guardar los datos de esta partida
+						with open('Datos ultPartida.txt', 'w') as f:
+							f.write(str(len(T)) + "\n")
 
-				elif evt.unicode.isnumeric() and int(fila) < 3 and Efila:
-					fila += evt.unicode
-				elif evt.key == K_BACKSPACE and Efila and len(fila) > 1:
-					fila = fila[:-1]
-				elif evt.key == K_BACKSPACE and Efila and len(fila) == 1:
-					Efila = False
-					Etablero = True
-				elif evt.key == K_RETURN and Efila and len(fila) > 1:
-					Efila = False
-					Ecolumna = True
+							f.write(player1.nombre + "\n")
+							f.write(str(player1.filas) + "\n")
+							f.write(str(player1.columnas) + "\n")
+							f.write(str(player1.diagonales) + "\n")
+							f.write(str(player1.enZ) + "\n")
+							f.write(str(player1.lineasFila) + "\n")
+							f.write(str(player1.lineasCol) + "\n")
+							f.write(str(player1.lineasDiag) + "\n")
+							f.write(str(player1.lineasEnZ) + "\n")
+							f.write(str(player1.turn) + "\n")
+							f.write(str(player1.wins) + "\n")
 
-				elif evt.unicode.isnumeric() and int(columna) < 3 and Ecolumna:
-					columna += evt.unicode
-				elif evt.key == K_BACKSPACE and Ecolumna and len(columna) > 1:
-					columna = columna[:-1]
-				elif evt.key == K_BACKSPACE and Ecolumna and len(columna) == 1:
-					Ecolumna = False
-					Efila = True
-				elif evt.key == K_RETURN and Ecolumna and len(columna) > 1:
-					Ecolumna = False
-					done = True
+							f.write(player2.nombre + "\n")
+							f.write(str(player2.filas) + "\n")
+							f.write(str(player2.columnas) + "\n")
+							f.write(str(player2.diagonales) + "\n")
+							f.write(str(player2.enZ) + "\n")
+							f.write(str(player2.lineasFila) + "\n")
+							f.write(str(player2.lineasCol) + "\n")
+							f.write(str(player2.lineasDiag) + "\n")
+							f.write(str(player2.lineasEnZ) + "\n")
+							f.write(str(player2.turn) + "\n")
+							f.write(str(player2.wins) + "\n")
 
-				if evt.key == K_UP and k > 0:
-					k -= 1
-				if evt.key == K_DOWN and k < len(T)-1:
-					k += 1
+							f.write(str(turno))
+
+						with open('Tableros ultPartida.txt', 'w') as f:
+							f.write(str(T))
+
+
+						return 0, 0, 0, True
+					if evt.key == K_RETURN and m == 0 and bot:
+						# Se decidio a salir y guardar la partida individual, por lo que procedemos a guardar los datos de esta partida
+						with open('Datos ultPartida Bot.txt', 'w') as f:
+							f.write(str(len(T)) + "\n")
+
+							f.write(player1.nombre + "\n")
+							f.write(str(player1.filas) + "\n")
+							f.write(str(player1.columnas) + "\n")
+							f.write(str(player1.diagonales) + "\n")
+							f.write(str(player1.enZ) + "\n")
+							f.write(str(player1.lineasFila) + "\n")
+							f.write(str(player1.lineasCol) + "\n")
+							f.write(str(player1.lineasDiag) + "\n")
+							f.write(str(player1.lineasEnZ) + "\n")
+							f.write(str(player1.turn) + "\n")
+							f.write(str(player1.wins) + "\n")
+
+							f.write(player2.nombre + "\n")
+							f.write(str(player2.filas) + "\n")
+							f.write(str(player2.columnas) + "\n")
+							f.write(str(player2.diagonales) + "\n")
+							f.write(str(player2.enZ) + "\n")
+							f.write(str(player2.lineasFila) + "\n")
+							f.write(str(player2.lineasCol) + "\n")
+							f.write(str(player2.lineasDiag) + "\n")
+							f.write(str(player2.lineasEnZ) + "\n")
+							f.write(str(player2.turn) + "\n")
+							f.write(str(player2.wins) + "\n")
+
+							f.write(str(turno))
+
+						with open('Tableros ultPartida Bot.txt', 'w') as f:
+							f.write(str(T))
+
+
+
+						return 0, 0, 0, True
+					if evt.key == K_RETURN and m == 1:
+						return 0, 0, 0, True
+
+
+				if not salir or guardar:
+					if evt.unicode.isnumeric() and int(tablero) < 3 and Etablero:
+						tablero += evt.unicode
+					elif evt.key == K_BACKSPACE and Etablero and len(tablero) > 1:
+						tablero = tablero[:-1]
+					elif evt.key == K_RETURN and Etablero and len(tablero) > 1 and not opcSalir:
+						Etablero = False
+						Efila = True
+
+					elif evt.unicode.isnumeric() and int(fila) < 3 and Efila:
+						fila += evt.unicode
+					elif evt.key == K_BACKSPACE and Efila and len(fila) > 1:
+						fila = fila[:-1]
+					elif evt.key == K_BACKSPACE and Efila and len(fila) == 1:
+						Efila = False
+						Etablero = True
+					elif evt.key == K_RETURN and Efila and len(fila) > 1 and not opcSalir:
+						Efila = False
+						Ecolumna = True
+
+					elif evt.unicode.isnumeric() and int(columna) < 3 and Ecolumna:
+						columna += evt.unicode
+					elif evt.key == K_BACKSPACE and Ecolumna and len(columna) > 1:
+						columna = columna[:-1]
+					elif evt.key == K_BACKSPACE and Ecolumna and len(columna) == 1:
+						Ecolumna = False
+						Efila = True
+					elif evt.key == K_RETURN and Ecolumna and len(columna) > 1 and not opcSalir:
+						Ecolumna = False
+						done = True
+
+
+					if evt.key == K_UP and k > 0 and not opcSalir:
+						k -= 1
+					if evt.key == K_DOWN and k < len(T)-1 and not opcSalir:
+						k += 1
+					elif evt.key == K_DOWN and k == len(T)-1 and not opcSalir and not guardar:
+						opcSalir = True
+					if evt.key == K_UP and opcSalir:
+						opcSalir = False
+					elif evt.key == K_RETURN and opcSalir:
+						salir = True
+
+				elif salir and not guardar:
+					if evt.key == K_RIGHT:
+						m = 1
+					if evt.key == K_LEFT:
+						m = 0
+					if evt.key == K_RETURN and m == 0:
+						guardar = True
+						opcSalir = False
+					if evt.key == K_RETURN and m == 1:
+						salir = False
+
 
 			if evt.type == pygame.QUIT:
 				pygame.quit()
@@ -345,6 +497,20 @@ def jugada(T: [[[int]]], player1: Jugador, player2: Jugador, IndJug, Mensaje) ->
 
 		mostarPuntajes(player1, player2)
 
+		if not salir:
+			if Etablero and time < 5 and len(tablero) < 3:
+				pygame.draw.line(pantalla, (0,0,0), [220+10*(len(tablero)-1), 255], [235+10*(len(tablero)-1), 255], 4)
+			elif Etablero and time < 5 and len(tablero) == 3:
+				pygame.draw.line(pantalla, (0,0,0), [230, 255], [245, 255], 4)
+			elif Efila and time < 5 and len(fila) < 3:
+				pygame.draw.line(pantalla, (0,0,0), [630+10*(len(fila)-1), 255], [645+10*(len(fila)-1), 255], 4)
+			elif Efila and time < 5 and len(fila) == 3:
+				pygame.draw.line(pantalla, (0,0,0), [640, 255], [655, 255], 4)
+			elif Ecolumna and time < 5 and len(columna) < 3:
+				pygame.draw.line(pantalla, (0,0,0), [1130+10*(len(columna)-1), 255], [1145+10*(len(columna)-1), 255], 4)
+			elif Ecolumna and time < 5 and len(columna) == 3:
+				pygame.draw.line(pantalla, (0,0,0), [1140, 255], [1155, 255], 4)
+
 		pantalla.blit(IndJug, [430, 200])
 		pantalla.blit(Tab, [10, 230])
 		pantalla.blit(Fil, [460, 230])
@@ -353,36 +519,68 @@ def jugada(T: [[[int]]], player1: Jugador, player2: Jugador, IndJug, Mensaje) ->
 		pantalla.blit(JFil, [630, 230])
 		pantalla.blit(JCol, [1130, 230])
 		pantalla.blit(Tablero, [980, 320])
-		pantalla.blit(Mensaje, [100, 260])
-		pantalla.blit(triangulo, [1050, 345 + k*30])
+
+		if not opcSalir:
+			pantalla.blit(triangulo, [1050, 345 + k*30])
+		elif not salir:
+			pantalla.blit(triangulo, [1110, 375 + len(T)*30])
+		if not salir and not guardar:
+			pantalla.blit(Mensaje, [100, 260])
+		elif salir and not guardar:
+			pantalla.blit(AsegurarSalida, [100, 260])
+			pantalla.blit(Yes, [900, 260])
+			pantalla.blit(Not, [1100, 260])
+			pantalla.blit(triangulo, [950 + m*220, 260])
+
+
+		if guardar:
+			pantalla.blit(AsegurarGuardar, [50, 260])
+			pantalla.blit(Yes, [900, 260])
+			pantalla.blit(Not, [1100, 260])
+			pantalla.blit(triangulo, [950 + m*220, 260])
+
+
 		for i in range(0, len(T)):
 			Num = texto.render(str(i+1), True, (0,0,0))
 			pantalla.blit(Num, [1020, 350 + i*30])
 
+		if not guardar:
+			pantalla.blit(Salir, [1020, 380 + len(T)*30])
+
 		dibujarTab(T[k], player1, player2, k)
 
 		pygame.display.update()
+
+		time += 1
+
+		if time == 10:
+			time = 0
 		reloj1.tick(20)
 
-	return int(tablero), int(fila), int(columna)
+	return int(tablero), int(fila), int(columna), False
 
-def pedirJugada(T: [[[int]]], player1: Jugador, player2: Jugador, UltMen: str, turno: int) -> (int, int, int):
-	# Le pide al jugador que le toque jugar la jugada que desea realizar
+def pedirJugada(T: [[[int]]], player1: Jugador, player2: Jugador, UltMen: str, turno: int, bot: bool) -> (int, int, int, bool):
+	""" Le pide al jugador que le toque jugar la jugada que desea realizar"""
 
 	IndJug1 = texto.render(player1.nombre + "  indique  su  jugada", True, (0,0,0))
 	IndJug2 = texto.render(player2.nombre + "  indique  su  jugada", True, (0,0,0))
 	Mens = texto.render(UltMen, True, (0,0,0))
 
 	if player1.turn == turno:
-		tablero, fila, columna = jugada(T, player1, player2, IndJug1, Mens)
+		tablero, fila, columna, salir = jugada(T, player1, player2, IndJug1, Mens, turno, bot)
+	elif player2.turn == turno and not bot:
+		tablero, fila, columna, salir = jugada(T, player1, player2, IndJug2, Mens, turno, bot)
+	elif player2.turn == turno and bot:
+		jugadaBot = miniMax(T, 3, 0, player1, player2, True, 1, True)
+		tablero = jugadaBot[0] + 1
+		fila = jugadaBot[1] + 1
+		columna = jugadaBot[2] + 1
+		salir = False
 
-	else:
-		tablero, fila, columna = jugada(T, player1, player2, IndJug2, Mens)
-
-	return tablero-1, fila-1, columna-1
+	return tablero-1, fila-1, columna-1, salir
 
 def resultado(T: [[[int]]], player1: Jugador, player2: Jugador, total1: int, total2: int) -> bool:
-	# Muestra el resultado de la partida
+	""" Muestra el resultado de la partida"""
 
 	# Variable que mueve la flecha para indicar al jugador en que tablero se encuentra
 	k = 0
@@ -394,13 +592,15 @@ def resultado(T: [[[int]]], player1: Jugador, player2: Jugador, total1: int, tot
 	done = False
 
 	if total1 > total2:
-		Mensj = texto.render(player1.nombre + "  ha  ganado  la  partida.  Desean  jugar  otra?", True, (0,0,0))
-		player1.wins += 1
+		Mensj = texto.render(player1.nombre + "  ha  ganado  la  partida.  ¿Desean  jugar  otra?", True, (0,0,0))
+		if player1.wins < 1000:
+			player1.wins += 1
 	elif total2 > total1:
-		Mensj = texto.render(player2.nombre + "  ha  ganado  la  partida.  Desean  jugar  otra?", True, (0,0,0))
-		player2.wins += 1
+		Mensj = texto.render(player2.nombre + "  ha  ganado  la  partida.  ¿Desean  jugar  otra?", True, (0,0,0))
+		if player2.wins < 1000:
+			player2.wins += 1
 	else:
-		Mensj = texto.render("El  juego  termino  en  empate.  Desean  jugar  otra?", True, (0,0,0))
+		Mensj = texto.render("El  juego  termino  en  empate.  ¿Desean  jugar  otra?", True, (0,0,0))
 
 	while not done:
 		for evt in pygame.event.get():
@@ -426,7 +626,7 @@ def resultado(T: [[[int]]], player1: Jugador, player2: Jugador, total1: int, tot
 
 		pantalla.blit(Tablero, [980, 320])
 		pantalla.blit(triangulo, [1050, 345 + k*30])
-		pantalla.blit(Mensj, [100, 260])
+		pantalla.blit(Mensj, [30, 260])
 		pantalla.blit(Yes, [900, 260])
 		pantalla.blit(Not, [1100, 260])
 		pantalla.blit(triangulo, [950 + m*220, 260])
@@ -441,7 +641,7 @@ def resultado(T: [[[int]]], player1: Jugador, player2: Jugador, total1: int, tot
 		reloj1.tick(20)
 
 def guardarNombre(player1: Jugador, player2: Jugador, turn: int):
-	# Guarda el nombre indicado por el usuario
+	""" Guarda el nombre indicado por el usuario"""
 
 	# Indica cuando el jugador ya termino de colocar el nombre
 	done = False
@@ -455,7 +655,7 @@ def guardarNombre(player1: Jugador, player2: Jugador, turn: int):
 		for evt in pygame.event.get():
 			if turn == 1:
 				if evt.type == KEYDOWN:
-					if evt.unicode.isalpha() and len(player1.nombre) < 11:
+					if evt.unicode.isalpha() and len(player1.nombre) < 8:
 						player1.nombre += evt.unicode
 					elif evt.key == K_BACKSPACE:
 						player1.nombre = player1.nombre[:-1]
@@ -465,7 +665,7 @@ def guardarNombre(player1: Jugador, player2: Jugador, turn: int):
 					pygame.quit()
 			else:
 				if evt.type == KEYDOWN:
-					if evt.unicode.isalpha() and len(player2.nombre) < 11:
+					if evt.unicode.isalpha() and len(player2.nombre) < 8:
 						player2.nombre += evt.unicode
 					elif evt.key == K_BACKSPACE:
 						player2.nombre = player2.nombre[:-1]
@@ -499,7 +699,7 @@ def guardarNombre(player1: Jugador, player2: Jugador, turn: int):
 		return nombre2
 
 def pantallaMultiJug(player1: Jugador, player2: Jugador) -> int:
-	# En esta pantalla se le pide a los dos jugadores su nombre, asi como la dimension del supertablero
+	""" En esta pantalla se le pide a los dos jugadores su nombre, asi como la dimension del supertablero"""
 
 	# Dimension del tablero
 	N = "0"
@@ -518,7 +718,7 @@ def pantallaMultiJug(player1: Jugador, player2: Jugador) -> int:
 			if evt.type == KEYDOWN:
 				if evt.unicode.isnumeric() and len(N) < 3:
 					N += evt.unicode
-				elif evt.key == K_BACKSPACE:
+				elif evt.key == K_BACKSPACE and len(N) > 1:
 					N = N[:-1]
 				elif evt.key == K_RETURN and len(N) > 1 and int(N)<12:
 					done = True
@@ -542,7 +742,7 @@ def pantallaMultiJug(player1: Jugador, player2: Jugador) -> int:
 		NAct = N
 
 		Num = nombres.render(NAct.lstrip("0"), True, (0,0,0))
-		pantalla.blit(Num, [int(3*resolucion[0]/4), int(5*resolucion[1]/6)])
+		pantalla.blit(Num, [1000, 615])
 
 		pygame.display.update()
 		reloj1.tick(20)
@@ -550,17 +750,137 @@ def pantallaMultiJug(player1: Jugador, player2: Jugador) -> int:
 
 	return int(N)
 
-def partida(otro: bool, T: [[[int]]], player1: Jugador, player2: Jugador, turno: int, UltMen: str, N: int) -> bool:
-	# Pantalla donde se realiza una juego
+def pantallaUniJug(player: Jugador) -> int:
+	""" En esta pantalla se le pide el nombre al jugador, asi como la dimension del supertablero"""
+
+	# Dimension del tablero
+	N = "0"
+
+	# Indica cuando el jugador ya termino de colocar el nombre
+	done = False
+
+	mensj = "Jugador indique su nombre: "
+
+	while not done:
+		for evt in pygame.event.get():
+			if evt.type == KEYDOWN:
+				if evt.unicode.isalpha() and len(player.nombre) < 8:
+					player.nombre += evt.unicode
+				elif evt.key == K_BACKSPACE:
+					player.nombre = player.nombre[:-1]
+				elif evt.key == K_RETURN and len(player.nombre) > 0:
+					done = True
+			if evt.type == pygame.QUIT:
+				pygame.quit()
+
+		pantalla.blit(fondo, [0, 0]) 
+		pantalla.blit(titulo, [450, 50])
+		pantalla.blit(JugadorSolo, [300, 405])
+		pantalla.blit(NumDim, [100, 575])
+		pantalla.blit(trianguloInv2, [180, 405])
+
+		Mensj = texto.render(mensj, True, (0,0,0))
+		pantalla.blit(Mensj, [400, 320])
+
+		nombre1 = nombres.render(player.nombre, True, (0,0,0))
+		pantalla.blit(nombre1, [750, 405])
+
+		pygame.display.update()
+		reloj1.tick(20) 
+
+	mensj = "Indiquen   la   dimension   del   super-tablero."
+
+	# Indica cuando el usuario ya decidio la dimension del super-tablero
+	done = False
+
+	while not done:
+		for evt in pygame.event.get():
+			if evt.type == KEYDOWN:
+				if evt.unicode.isnumeric() and len(N) < 3:
+					N += evt.unicode
+				elif evt.key == K_BACKSPACE and len(N) > 1:
+					N = N[:-1]
+				elif evt.key == K_RETURN and len(N) > 1 and int(N)<12:
+					done = True
+				elif evt.key == K_RETURN and len(N) > 1 and int(N)>11:
+					mensj = "El   supertablero   no   puede   ser   tan   grande."
+			if evt.type == pygame.QUIT:
+				pygame.quit()
+
+		pantalla.blit(fondo, [0, 0]) 
+		pantalla.blit(titulo, [450, 50])
+		pantalla.blit(JugadorSolo, [300, 405])
+		pantalla.blit(NumDim, [100, 575])
+		pantalla.blit(nombre1, [750, 405])
+		pantalla.blit(trianguloInv2, [10, 575])
+
+		Mensj = texto.render(mensj, True, (0,0,0))
+		pantalla.blit(Mensj, [400, 320])
+
+		NAct = N
+
+		Num = nombres.render(NAct.lstrip("0"), True, (0,0,0))
+		pantalla.blit(Num, [1000, 575])
+
+		pygame.display.update()
+		reloj1.tick(20)
+
+
+	return int(N)
+
+def pantallaCargarPart() -> int:
+	""" En esta pantalla se le pregunta al usuario si desea cargar la ultima partida guardada"""
+
+	# Variable que mueve la flecha para indicar al jugador si esta en la opcion "si" o "no"
+	k = 0
+
+	while True:
+		for evt in pygame.event.get():
+			if evt.type == KEYDOWN:
+				if evt.key == K_UP:
+					k = 0
+				if evt.key == K_DOWN:
+					k = 1
+				if evt.key == K_RETURN and k == 0:
+					return True
+				if evt.key == K_RETURN and k == 1:
+					return False
+			if evt.type == pygame.QUIT:
+				pygame.quit()
+
+		pantalla.blit(fondo, [0, 0]) 
+		pantalla.blit(titulo, [450, 50])
+		pantalla.blit(CargarPartida, [20, 375])
+		pantalla.blit(YES, [300, 495])
+		pantalla.blit(NOT, [300, 615])
+		pantalla.blit(trianguloInv2, [200, 500 + k*120])
+
+
+		pygame.display.update()
+		reloj1.tick(20)
+
+def partida(otro: bool, T: [[[int]]], player1: Jugador, player2: Jugador, turno: int, UltMen: str, N: int, bot: bool) -> bool:
+	""" Pantalla donde se realiza una juego"""
+
+	UltMen = "" # En esta variable se guardara el ultimo mensaje importante del juego
+
+	jugada = [0, 0, 0] # En esta variable se guardara la jugada de los jugadores (solo se usara para indicar cual fue la jugada del bot)
+
+	valido = True # Indica si una jugada fue valida
+
 	while quedanFichas(T):
+		if bot and valido:
+			UltMen = actualizar(T, player1, player2, UltMen, turno, jugada)
 
 		# Le pedimos al usuario correspondiente el taablero, fila y columna donde quiere jugar 
-		tablero, fila, columna = pedirJugada(T, player1, player2, UltMen, turno)
+		tablero, fila, columna, salir = pedirJugada(T, player1, player2, UltMen, turno, bot)
+		jugada = [tablero, fila, columna]
 
 		# Mensaje que se le va informando a los jugadores
 		UltMen = ""
 
-		if esValida(T, tablero, fila, columna):
+		valido = esValida(T, tablero, fila, columna)
+		if valido and not salir:
 
 			reflejarJugada(T, tablero, fila, columna, turno)
 
@@ -570,13 +890,16 @@ def partida(otro: bool, T: [[[int]]], player1: Jugador, player2: Jugador, turno:
 			else:
 				UltMen = hayLinea(T, tablero, fila, columna, player2)
 				turno = 3 - turno
-		else:
+		elif not salir:
 			UltMen = "La  jugada  no  es  valida"
+		else:
+			return False
+
 
 	return True
 
 def pantallaPrinc() -> bool:
-	# Pantalla principal, tiene las opciones de jugar multijugador, contra la computadora o salir del juego
+	""" Pantalla principal, tiene las opciones de jugar multijugador, contra la computadora o salir del juego"""
 
 	# Indica cuando el usuario ya decidio el modo de juego
 	done = False
@@ -608,20 +931,221 @@ def pantallaPrinc() -> bool:
 		pantalla.blit(triangulo2, [900, 380 + k*120])
 
 		pygame.display.update()
-		reloj1.tick(20) 
+		reloj1.tick(20)
 
+def actualizar(T: [[[int]]], player: Jugador, bot: Jugador, UltMen: str, turno: int, jugada: [int]) -> str:
+	"""Actualizamos momentaneamente la pantalla de la partida"""
+
+	done = False # Indica si ya ha pasado cierto tiempo
+
+	time = 0 # Se usa para saber cuanto tiempo ha pasado desde que se llamo a la funcion
+
+	ultMen = UltMen # Guardamos el ultimo mensaje que se desea dar a los jugadores
+
+	while not done:
+		for evt in pygame.event.get():
+			if evt.type == pygame.QUIT:
+				pygame.quit()
+
+		mostarPuntajes(player, bot)
+
+		if turno == player.turn and not supTabEmpty(T):
+			IndJug = texto.render("El  Bot  jugo  en  el  tablero  " + str(jugada[0] + 1) + ",  fila  " + str(jugada[1] + 1) + "  y  columna  " + str(jugada[2] + 1), True, (0,0,0))
+			pantalla.blit(IndJug, [200, 200])
+		elif turno == bot.turn:
+			IndJug = texto.render("El  Bot  esta  eligiendo  su  siguiente  jugada.  Espere  por  favor...", True, (0,0,0))
+			pantalla.blit(IndJug, [200, 200])
+
+		Mens = texto.render(ultMen, True, (0,0,0))
+		pantalla.blit(Mens, [100, 260])
+		pantalla.blit(Tab, [10, 230])
+		pantalla.blit(Fil, [460, 230])
+		pantalla.blit(Col, [910, 230])
+		pantalla.blit(Tablero, [980, 320])
+
+		dibujarTab(T[jugada[0]], player, bot, jugada[0])
+
+		pygame.display.update()
+
+		time += 1
+
+		if time == 10:
+			done = True
+
+		reloj1.tick(20)
+
+	if turno == player.turn and not supTabEmpty(T) and ultMen != "":
+		return ultMen + ".  El  Bot  jugo  en  el  tablero  " + str(jugada[0] + 1) + ",  fila  " + str(jugada[1] + 1) + "  y  columna  " + str(jugada[2] + 1)
+	elif turno == player.turn and not supTabEmpty(T) and ultMen == "":
+		return "El  Bot  jugo  en  el  tablero  " + str(jugada[0] + 1) + ",  fila  " + str(jugada[1] + 1) + "  y  columna  " + str(jugada[2] + 1)
+	else:
+		return ultMen
+
+
+
+############################## SUBPROGRAMAS CORRESPONDIENTES A LA I.A. ############################################
+def supTabEmpty(T: [[[int]]]) -> bool:
+	"""Verifica si el Super-Tablero esta vacio"""
+
+	vacio = all( all( all(T[i][j][k] == 0 for k in range(0, len(T))) for j in range(0, len(T))) for i in range(0, len(T)))
+	return vacio
+
+def tabVacio(Tab: [[int]]) -> bool:
+	"""Verifica si un tablero esta vacio"""
+
+	vacio = all( all(Tab[i][j] == 0 for j in range(0, len(Tab)) ) for i in range(0, len(Tab)) )
+	return vacio
+
+def tabLleno(Tab: [[int]]) -> bool:
+	"""Verifica si un tablero esta lleno"""
+
+	lleno = all( all(Tab[i][j] != 0 for j in range(0, len(Tab)) ) for i in range(0, len(Tab)) )
+	return lleno
+
+def copiarSupTab(T: [[[int]]]) -> [[[int]]]:
+	"""Copia todo un Super-Tablero"""
+
+	M = [[[T[k][j][i] for i in range(0, len(T))] for j in range(0, len(T))] for k in range(0, len(T))]
+	return M
+
+def obtenerPuntos(T: [[[int]]], tablero: int, fila: int, columna: int, player: Jugador) -> int:
+	"""Obtenemos cuantas lineas se obtendrian en el Super-Tablero T con la jugada: tablero, fila, columna"""
+
+	lineas = 0
+
+	if hayLineaHorizontal(T, tablero, fila, player, True):
+		lineas += 1
+	if hayLineaVertical(T, tablero, columna, player, True):
+		lineas += 1
+	if hayLineaDiagonal(T, tablero, fila, columna, player, True):
+		lineas += 1
+	if hayLineaDiagonalInversa(T, tablero, fila, columna, player, True):
+		lineas += 1
+	if hayLineaEnZ(T, fila, columna, player, True):
+		lineas += 1
+
+	return lineas
+
+def tabsEmpty(T: [[[int]]]) -> bool:
+	"""Cuenta los tableros vacios en el Super-Tablero"""
+
+	vacios = 0
+
+	for i in range(0, len(T)):
+		if all( all( T[i][j][k] == 0 for j in range(0, len(T))) for k in range(0, len(T))):
+			vacios += 1
+
+	return vacios
+
+def emptyFull(T: [[[int]]]) -> bool:
+	"""Verifica si todos los tableros del Super-Tablero estan todos llenos o vacios. Si hay alguno con casillas vacias y otras ocupadas, retornara False"""
+
+	emptyFull = True
+
+	for i in range(0, len(T)):
+		emptyFull = emptyFull and (tabVacio(T[i]) or tabLleno(T[i]))
+
+	return emptyFull
+
+def miniMax(T: [[[int]]], n: int, puntos: int, player: Jugador, bot: Jugador, Max: bool, p: float, first: bool) -> [int, int, int, float]:
+	"""Algoritmo que calcula la jugada optima dado un estado del Super-Tablero actual, con una profundidad de n """
+	
+	lineas = puntos # Indica cuantos puntos se harian aproximadamente realizando una jugada particular
+
+	vacio = supTabEmpty(T) # Indica si el Super-Tablero esta vacio
+
+	jugadas = [] # Guardamos una lista con las posibles jugadas validas.
+	for tablero in range(0, len(T)):
+
+		# El siguiente if sirve para reducir la cantidad de jugadas que debe procesar la IA. Si el Super-Tablero esta vacio
+		# solo eligira una aleatoria; si hay menos de dos tableros vacios, considerara todas las posibles jugadas;
+		# si hay mas de un tablero vacio, solo considerara aquellos tableros con alguna ficha; y finalmente, si todos los
+		# tableros estan llenos o vacio, considerara todas las posibles jugadas
+		if (vacio or (tabsEmpty(T) < 2) or (tabsEmpty(T) > 1 and not tabVacio(T[tablero])) or emptyFull(T)  ):
+			for fila in range(0, len(T)):
+				for columna in range(0, len(T)):
+					if esValida(T, tablero, fila, columna):
+						jugadas.append([tablero, fila, columna, lineas])
+
+	# Vamos a maximizar los puntos (es decir, que le toca al bot)
+	if Max:
+		for jugada in jugadas:
+			C = copiarSupTab(T) # Creamos un Super-Tablero auxiliar
+
+			reflejarJugada(C, jugada[0], jugada[1], jugada[2], bot.turn) # Aplicamos cada posible jugada en las guardadas 
+									# anteriormente en el Super-Tablero auxiliar
+
+			lineas += (p+5*int(first))*obtenerPuntos(C, jugada[0], jugada[1], jugada[2], bot) # Si se hizo alguna linea,
+									# al parametro lineas lo aumentamos. La variable p sirve para disminuir el peso de cada
+									# jugada futura. La variable first hace que le de prioridad a las lineas que se pueden
+									# hacer en el turno inmediato
+
+			# Si quedan fichas en el Super-Tablero auxiliar, aun la profundidad de la recursion no es cero (esto lo indica
+			# la variable n) y el Super-Tablero original no esta vacio (esto para que no analice la primera jugada del juego, 
+			# sino que elija aleatoriamente), entonces se aplica otra vez miniMax de cada posible jugada
+			if quedanFichas(C) and n > 0 and not vacio:
+				jugada[3] = miniMax(C, n-1, lineas, player, bot, False, p*(1/2), False)[3]
+
+			# En caso contrario, el parametro de lineas de cada jugada seran las lineas que se hicieron directamente con dicha 
+			# jugada
+			else:
+				jugada[3] = lineas
+
+	# Vamos a minimizar los puntos (es decir, que le toca al player)
+	else:
+		for jugada in jugadas:
+			C = copiarSupTab(T) # Creamos un Super-Tablero auxiliar
+
+			reflejarJugada(C, jugada[0], jugada[1], jugada[2], player.turn) # Aplicamos cada posible jugada en las guardadas 
+									# anteriormente en el Super-Tablero auxiliar
+
+			lineas -= (p+2*int(first))*obtenerPuntos(C, jugada[0], jugada[1], jugada[2], player) # Si se hizo alguna linea,
+									# al parametro lineas lo disminuimos. La variable p sirve para disminuir el peso de cada
+									# jugada futura. La variable first hace que le de prioridad a las lineas que se pueden
+									# hacer en el turno inmediato
+
+			# Si quedan fichas en el Super-Tablero auxiliar, aun la profundidad de la recursion no es cero (esto lo indica
+			# la variable n) y el Super-Tablero original no esta vacio (esto para que no analice la primera jugada del juego, 
+			# sino que elija aleatoriamente), entonces se aplica otra vez miniMax de cada posible jugada
+			if quedanFichas(C) and n > 0 and not vacio:
+				jugada[3] = miniMax(C, n-1, lineas, player, bot, True, p*(1/2), False)[3]
+			# En caso contrario, el parametro de lineas de cada jugada seran las lineas que se hicieron directamente con dicha 
+			# jugada
+			else:
+				jugada[3] = lineas
+
+	# Verificamos cual fue la mayor puntuacion entre todas las jugadas analizadas
+	maxPuntos = max(jugada[3] for jugada in jugadas)
+
+	# En esta variable guardaremos las jugadas con la puntuacion maxima (ya que varias pueden dar este parametro igual)
+	bestJugadas = []
+
+	# Esta variable guardara el promedio de la puntuacion obtenida en todas las jugadas
+	promedio = 0
+
+	for jugada in jugadas:
+		promedio += jugada[3]
+		if jugada[3] == maxPuntos:
+			bestJugadas.append(jugada)
+
+	promedio /= len(jugadas)
+
+	# Elegimos alguna de las jugadas con la mejor puntuacion de manera aleatoria
+	jugadaDef = random.choice(bestJugadas)
+
+	# La puntuacion de esta jugada sera el promedio de las puntuaciones de las jugadas en esta capa 
+	jugadaDef[3] = promedio
+
+
+	return jugadaDef
 
 
 
 def main():
-	# Funcion Principal
+	""" Funcion Principal"""
+
 
 	while True:
-
-		# Creamos las dos instancias de la clase Jugador, los cuales tendran la informacion de ambos jugadores
-		#player1 = Jugador("", randint(1, 2))
-		#player2 = Jugador("", 3 - player1.turn)
-
 		# Mientras la variable otro sea True, se repetira la partida entre los dos jugadores
 		otro = True
 
@@ -629,50 +1153,436 @@ def main():
 		turno = 1
 
 		# Creamos la matriz tridimensional que representara al super-tablero
-		T = [[[0]]]
+		T = []
+
+		# Variable que indica si vamos a jugar una partida cargada
+		cargarPartida = False
+
+		# Abrimos el archivo con los datos de la ultima partida multijugador y contra el bot
+		ultimaPartidaMulti = open('Datos ultPartida.txt', 'r')
+		ultimaPartidaBot = open('Datos ultPartida Bot.txt', 'r')
 
 		# Entramos al menu principal
 		multijugador = pantallaPrinc()
 
+		# Si el archivo con los datos de la ultima partida esta vacio, significa que no hay ninguna partida cargada y por lo tanto no es necesario entrar a la pantalla donde se debe preguntar si desea cargar la ultima aprtida
+		if (ultimaPartidaMulti.readlines()[0] != " " and multijugador) or (ultimaPartidaBot.readlines()[0] != " " and not multijugador):
+			cargarPartida = pantallaCargarPart()
+
+		# Cerramos el archivo
+		ultimaPartidaMulti.close()
+
+
+
 		# Si se decidio jugar una partida multijugador
-		if multijugador:
-			# Creamos las dos instancias de la clase Jugador, los cuales tendran la informacion de ambos jugadores
-			player1 = Jugador("", randint(1, 2))
-			player2 = Jugador("", 3 - player1.turn)
-
-			# Llamamos a la pantalla donde los jugadores deciden sus nombres y la dimension del super-tablero
-			N = pantallaMultiJug(player1, player2)
-
+		if multijugador :
 			while otro:
-				# Restauramos a 0 los puntajes de ambos jugadores
-				player1.filas = 0
-				player1.columnas = 0
-				player1.diagonales = 0
-				player1.enZ = 0
+				# Creamos las dos instancias de la clase Jugador, los cuales tendran la informacion de ambos jugadores
+				player1 = Jugador("", randint(1, 2))
+				player2 = Jugador("", 3 - player1.turn)
 
-				player2.filas = 0
-				player2.columnas = 0
-				player2.diagonales = 0
-				player2.enZ = 0
+				# Si decidimos jugar una partida nueva, llamamos a la pantalla donde los jugadores deciden sus nombres y la dimension del super-tablero
+				if not cargarPartida:
+					N = pantallaMultiJug(player1, player2)
 
-				# Vaciamos el super-tablero
-				T = [[[0 for i in range(0, N)] for j in range(0, N)] for k in range(0, N)]
+				while otro:
+					# Restauramos a 0 los puntajes de ambos jugadores
+					player1.filas = 0
+					player1.columnas = 0
+					player1.diagonales = 0
+					player1.enZ = 0
 
-				# Vaciamos el ultimo mensaje
-				UltMen = ""
+					player2.filas = 0
+					player2.columnas = 0
+					player2.diagonales = 0
+					player2.enZ = 0
 
-				# Llamamos a una partida. Termino sera True si la partida llega a su final
-				termino = partida(otro, T, player1, player2, turno, UltMen, N)
 
-				# Sumamos los puntos que obtuvieron el jugador1 y el jugador2 respectivamente
-				total1 = player1.filas + player1.columnas + player1.diagonales + player1.enZ
-				total2 = player2.filas + player2.columnas + player2.diagonales + player2.enZ
+					# Restauramos a [] las lineas hechas de ambos jugadores
+					player1.lineasFila = []
+					player1.lineasCol = []
+					player1.lineasDiag = []
+					player1.lineasEnZ = []
 
-				# Verificamos si los jugadores quieren jugar otra partida
-				if termino:
-					otro = resultado(T, player1, player2, total1, total2)
-					turno = 3 - turno
-				else:
-					otro = False
+					player2.lineasFila = []
+					player2.lineasCol = []
+					player2.lineasDiag = []
+					player2.lineasEnZ = []
+
+					# Vaciamos el super-tablero
+					if not cargarPartida:
+						T = [[[0 for i in range(0, N)] for j in range(0, N)] for k in range(0, N)]
+
+					# Si se decide jugar una partida cargada
+					else:
+						with open('Datos ultPartida.txt', 'r') as f:
+							lineas = f.readlines()
+
+							# Leemos la dimension del supertablero
+							N = int(lineas[0])
+
+							# Leemos los datos del Jugador 1
+							player1.nombre = lineas[1].replace("\n", "")
+							player1.filas = int(lineas[2])
+							player1.columnas = int(lineas[3])
+							player1.diagonales = int(lineas[4])
+							player1.enZ = int(lineas[5])
+
+							first = True
+
+							for char in lineas[6]:
+								if char in "0123456789":
+									if first:
+										array = [int(char)]
+										first = False
+									else:
+										first = True
+										array.append(int(char))
+										player1.lineasFila.append(array)
+
+
+							for char in lineas[7]:
+								if char in "0123456789":
+									if first:
+										array = [int(char)]
+										first = False
+									else:
+										first = True
+										array.append(int(char))
+										player1.lineasCol.append(array)
+
+							for char in lineas[8]:
+								if char in "0123456789":
+									if first:
+										array = [int(char)]
+										first = False
+									else:
+										first = True
+										array.append(int(char))
+										player1.lineasDiag.append(array)
+
+							for char in lineas[9]:
+								if char in "0123456789":
+									if first:
+										array = [int(char)]
+										first = False
+									else:
+										first = True
+										array.append(int(char))
+										player1.lineasEnZ.append(array)
+
+
+							player1.turn = int(lineas[10])
+							player1.wins = int(lineas[11])
+
+
+							# Leemos los datos del Jugador 2
+							player2.nombre = lineas[12].replace("\n", "")
+							player2.filas = int(lineas[13])
+							player2.columnas = int(lineas[14])
+							player2.diagonales = int(lineas[15])
+							player2.enZ = int(lineas[16])
+
+							first = True
+							for char in lineas[17]:
+								if char in "0123456789":
+									if first:
+										array = [int(char)]
+										first = False
+									else:
+										first = True
+										array.append(int(char))
+										player2.lineasFila.append(array)
+
+
+							for char in lineas[18]:
+								if char in "0123456789":
+									if first:
+										array = [int(char)]
+										first = False
+									else:
+										first = True
+										array.append(int(char))
+										player2.lineasCol.append(array)
+
+							for char in lineas[19]:
+								if char in "0123456789":
+									if first:
+										array = [int(char)]
+										first = False
+									else:
+										first = True
+										array.append(int(char))
+										player2.lineasDiag.append(array)
+
+							for char in lineas[20]:
+								if char in "0123456789":
+									if first:
+										array = [int(char)]
+										first = False
+									else:
+										first = True
+										array.append(int(char))
+										player2.lineasEnZ.append(array)
+
+							player2.turn = int(lineas[21])
+							player2.wins = int(lineas[22])
+
+
+							turno = int(lineas[23])
+
+						# Leemos los datos del Super-Tablero
+						with open('Tableros ultPartida.txt', 'r') as f:
+							lineas = f.readlines()
+
+							ToneDim = []
+							TbiDim = []
+							for char in lineas[0]:
+								if char in "0123456789":
+									ToneDim.append(int(char))
+
+							for i in range(0, N*N*N):
+								if i % N == 0:
+									array = [ToneDim[k] for k in range(i, i + N)]
+									TbiDim.append(array)
+
+							for i in range(0, N*N):
+								if i % N == 0:
+									array = [TbiDim[k] for k in range(i, i + N)]
+									T.append(array)
+									
+
+					# Vaciamos el ultimo mensaje
+					UltMen = ""
+
+					# Llamamos a una partida. Termino sera True si la partida llega a su final
+					termino = partida(otro, T, player1, player2, turno, UltMen, N, False)
+
+					# Sumamos los puntos que obtuvieron el jugador1 y el jugador2 respectivamente
+					total1 = player1.filas + player1.columnas + player1.diagonales + player1.enZ
+					total2 = player2.filas + player2.columnas + player2.diagonales + player2.enZ
+
+					# Verificamos si los jugadores quieren jugar otra partida
+					if termino:
+						otro = resultado(T, player1, player2, total1, total2)
+
+						turno = 3 - turno
+
+						# Si la partida actual era una partida cargada, entonces eliminamos los datos de dicha partida
+						if cargarPartida:
+							with open('Datos ultPartida.txt', 'w') as f:
+								f.write(" ")
+							with open('Tableros ultPartida.txt', 'w') as f:
+								f.write(" ")
+
+						cargarPartida = False
+
+					else:
+						otro = False
+
+		else:
+			while otro:
+				# Creamos las dos instancias de la clase Jugador, los cuales tendran la informacion del jugador y del bot respectivamente
+				player1 = Jugador("", randint(1, 2))
+				player2 = Jugador("Bot", 3 - player1.turn)
+
+				# Si decidimos jugar una partida nueva, llamamos a la pantalla donde los jugadores deciden sus nombres y la dimension del super-tablero
+				if not cargarPartida:
+					N = pantallaUniJug(player1)
+
+				while otro:
+					# Restauramos a 0 los puntajes de ambos jugadores
+					player1.filas = 0
+					player1.columnas = 0
+					player1.diagonales = 0
+					player1.enZ = 0
+
+					player2.filas = 0
+					player2.columnas = 0
+					player2.diagonales = 0
+					player2.enZ = 0
+
+
+					# Restauramos a [] las lineas hechas de ambos jugadores
+					player1.lineasFila = []
+					player1.lineasCol = []
+					player1.lineasDiag = []
+					player1.lineasEnZ = []
+
+					player2.lineasFila = []
+					player2.lineasCol = []
+					player2.lineasDiag = []
+					player2.lineasEnZ = []
+
+					# Vaciamos el super-tablero
+					if not cargarPartida:
+						T = [[[0 for i in range(0, N)] for j in range(0, N)] for k in range(0, N)]
+
+					# Si se decide jugar una partida cargada
+					else:
+						with open('Datos ultPartida Bot.txt', 'r') as f:
+							lineas = f.readlines()
+
+							# Leemos la dimension del supertablero
+							N = int(lineas[0])
+
+							# Leemos los datos del Jugador 1
+							player1.nombre = lineas[1].replace("\n", "")
+							player1.filas = int(lineas[2])
+							player1.columnas = int(lineas[3])
+							player1.diagonales = int(lineas[4])
+							player1.enZ = int(lineas[5])
+
+							first = True
+
+							for char in lineas[6]:
+								if char in "0123456789":
+									if first:
+										array = [int(char)]
+										first = False
+									else:
+										first = True
+										array.append(int(char))
+										player1.lineasFila.append(array)
+
+
+							for char in lineas[7]:
+								if char in "0123456789":
+									if first:
+										array = [int(char)]
+										first = False
+									else:
+										first = True
+										array.append(int(char))
+										player1.lineasCol.append(array)
+
+							for char in lineas[8]:
+								if char in "0123456789":
+									if first:
+										array = [int(char)]
+										first = False
+									else:
+										first = True
+										array.append(int(char))
+										player1.lineasDiag.append(array)
+
+							for char in lineas[9]:
+								if char in "0123456789":
+									if first:
+										array = [int(char)]
+										first = False
+									else:
+										first = True
+										array.append(int(char))
+										player1.lineasEnZ.append(array)
+
+
+							player1.turn = int(lineas[10])
+							player1.wins = int(lineas[11])
+
+
+							# Leemos los datos del Jugador 2
+							player2.nombre = lineas[12].replace("\n", "")
+							player2.filas = int(lineas[13])
+							player2.columnas = int(lineas[14])
+							player2.diagonales = int(lineas[15])
+							player2.enZ = int(lineas[16])
+
+							first = True
+							for char in lineas[17]:
+								if char in "0123456789":
+									if first:
+										array = [int(char)]
+										first = False
+									else:
+										first = True
+										array.append(int(char))
+										player2.lineasFila.append(array)
+
+
+							for char in lineas[18]:
+								if char in "0123456789":
+									if first:
+										array = [int(char)]
+										first = False
+									else:
+										first = True
+										array.append(int(char))
+										player2.lineasCol.append(array)
+
+							for char in lineas[19]:
+								if char in "0123456789":
+									if first:
+										array = [int(char)]
+										first = False
+									else:
+										first = True
+										array.append(int(char))
+										player2.lineasDiag.append(array)
+
+							for char in lineas[20]:
+								if char in "0123456789":
+									if first:
+										array = [int(char)]
+										first = False
+									else:
+										first = True
+										array.append(int(char))
+										player2.lineasEnZ.append(array)
+
+							player2.turn = int(lineas[21])
+							player2.wins = int(lineas[22])
+
+
+							turno = int(lineas[23])
+
+						# Leemos los datos del Super-Tablero
+						with open('Tableros ultPartida Bot.txt', 'r') as f:
+							lineas = f.readlines()
+
+							ToneDim = []
+							TbiDim = []
+							for char in lineas[0]:
+								if char in "0123456789":
+									ToneDim.append(int(char))
+
+							for i in range(0, N*N*N):
+								if i % N == 0:
+									array = [ToneDim[k] for k in range(i, i + N)]
+									TbiDim.append(array)
+
+							for i in range(0, N*N):
+								if i % N == 0:
+									array = [TbiDim[k] for k in range(i, i + N)]
+									T.append(array)
+									
+
+					# Vaciamos el ultimo mensaje
+					UltMen = ""
+
+					# Llamamos a una partida. Termino sera True si la partida llega a su final
+					termino = partida(otro, T, player1, player2, turno, UltMen, N, True)
+
+					# Sumamos los puntos que obtuvieron el jugador1 y el jugador2 respectivamente
+					total1 = player1.filas + player1.columnas + player1.diagonales + player1.enZ
+					total2 = player2.filas + player2.columnas + player2.diagonales + player2.enZ
+
+					# Verificamos si los jugadores quieren jugar otra partida
+					if termino:
+						otro = resultado(T, player1, player2, total1, total2)
+
+						turno = 3 - turno
+
+						# Si la partida actual era una partida cargada, entonces eliminamos los datos de dicha partida
+						if cargarPartida:
+							with open('Datos ultPartida Bot.txt', 'w') as f:
+								f.write(" ")
+							with open('Tableros ultPartida Bot.txt', 'w') as f:
+								f.write(" ")
+
+						cargarPartida = False
+
+					else:
+						otro = False
 
 main()
