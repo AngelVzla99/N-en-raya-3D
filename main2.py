@@ -6,13 +6,17 @@ from pygame.locals import *
 #
 # Proyecto: N EN RAYA TRIDIMENSIONAL
 #
-# DESCRIPCION: Parecido al juego 3 en raya, pero en este caso, el juego consta de N tableros de tamanyo NxN, donde, ademas de las lineas horizontales, verticales y diagonales en un mismo tablero, tambien se considerara una linea cuando un jugador consigue colocar una ficha en la misma casilla de los N tableros. Ademas, el juego no se termina cuando un jugador logra una linea, sino que se sigue hasta que se completen las NxNxN casillas, considerandose ganador quien logre realizar mas lineas.
+# DESCRIPCION: Parecido al juego 3 en raya, pero en este caso, el juego consta de N tableros de tamanyo NxN,
+# 			donde, ademas de las lineas horizontales, verticales y diagonales en un mismo tablero, tambien se considerara
+# 			una linea cuando un jugador consigue colocar una ficha en la misma casilla de los N tableros. Mas aun, el 
+#			juego no se termina cuando un jugador logra una linea, sino que se sigue hasta que se completen las NxNxN 
+#			casillas, considerandose ganador quien logre realizar mas lineas.
 #
 #
 # Autor:
 #		Amin Arriaga y Angel Garces
 #
-# Ultima modificacion: 31/05/2019
+# Ultima modificacion: 11/06/2019
 
 
 ########################################### CLASE JUGADOR #####################################################
@@ -38,6 +42,7 @@ class Jugador:
 
     	# Guardamos el numero de victorias de un Jugador
     	self.wins = 0
+
 
 
 ############################# CONSTANTES REFERENTE A LA RESOLUCION DE LA PANTALLA #############################
@@ -95,18 +100,34 @@ Salir = texto.render("Salir", True, (0,0,0))
 AsegurarSalida = texto.render("¿Esta seguro que desea salir?", True, (0,0,0))
 AsegurarGuardar = texto.render("¿Desea guardar esta partida? Se eliminara la anterior.", True, (0,0,0))
 CargarPartida = subtitulos.render("¿Desean  cargar  la  ultima  partida?", True, (0,0,0))
+Recomendacion = texto.render("Para  dimensiones  mayores  a  3,  el  bot  tardara  en  responder  algunas  jugadas.", 
+	True, (0,0,0))
 
 
 
 ############################################## SUBPROGRAMAS ###################################################
 def quedanFichas(T: [[[int]]]) -> bool:
-	""" Verifica si aun hay algun espacio donde se pueda colocar fichas en el supertablero"""
+	"""Funcion que verifica si aun hay algun espacio donde se pueda colocar fichas en el supertablero.
+
+	ENTRADAS:
+	T: [[[int]]], matriz tridimensional que representa al Super-Tablero.
+	SALIDAS:
+	bool, indica si hay alguna casilla vacia en el Super-Tablero."""
 
 	hayFichas = any( any( any(T[i][j][k]==0 for k in range(0, len(T))) for j in range(0, len(T))) for i in range(0, len(T)) )
 	return hayFichas
 
 def esValida(T: [[[int]]], tablero: int, fila: int, columna: int) -> bool:
-	"""Verifica si la posicion donde se desea jugar es valida. Una jugada se considera valida si no hay ninguna ficha en la posicion indicada"""
+	"""Funcion que verifica si la posicion donde se desea jugar es valida. Una jugada se considera valida si no hay
+		 ninguna ficha en la posicion indicada.
+
+	ENTRADAS:
+	T: [[[int]]], matriz tridimensional que representa al Super-Tablero.
+	tablero: int, indica el tablero donde se realizo la jugada.
+	fila: int, indica la fila donde se realizo la jugada.
+	columna: int, indica la columna donde se realizo la jugada.
+	SALIDAS:
+	bool, indica si el tablero, la fila y la columna estan dentro del Super-Tablero y en esa posicion hay un 0."""
 
 	if tablero > len(T)-1 or tablero < 0 or fila > len(T)-1 or fila < 0 or columna > len(T)-1 or columna < 0:
 		return False
@@ -114,7 +135,17 @@ def esValida(T: [[[int]]], tablero: int, fila: int, columna: int) -> bool:
 	return valido
 
 def hayLineaHorizontal(T: [[[int]]], tablero: int, fila: int, player: Jugador, minimax: bool) -> bool:
-	""" Verifica si se formo una linea horizontal en la posicion donde se realizo la jugada"""
+	"""Funcion que verifica si se formo una linea horizontal en la posicion donde se realizo la jugada.
+
+	ENTRADAS:
+	T: [[[int]]], matriz tridimensional que representa al Super-Tablero.
+	tablero: int, indica el tablero donde se realizo la jugada.
+	fila: int, indica la fila donde se realizo la jugada.
+	player: Jugador, contiene los datos del jugador que realizo esta jugada.
+	minimax: bool, indica si la funcion esta siendo llamada por la funcion miniMax. En caso de ser asi, no guardara las lineas
+			que se hagan en los datos del jugador.
+	SALIDAS:
+	bool, indica si en la posicion que jugo el Jugador se realizo una linea horizontal."""
 
 	turno = player.turn
 	lineaHorizontal = all( T[tablero][fila][i]==turno for i in range(0, len(T)) )
@@ -126,7 +157,17 @@ def hayLineaHorizontal(T: [[[int]]], tablero: int, fila: int, player: Jugador, m
 	return lineaHorizontal
 
 def hayLineaVertical(T: [[[int]]], tablero: int ,columna: int , player: Jugador, minimax: bool) -> bool:
-	""" Verifica si se formo una linea vertical en la posicion donde se realizo la jugada"""
+	""" Verifica si se formo una linea vertical en la posicion donde se realizo la jugada.
+
+	ENTRADAS:
+	T: [[[int]]], matriz tridimensional que representa al Super-Tablero.
+	tablero: int, indica el tablero donde se realizo la jugada.
+	columna: int, indica la columna donde se realizo la jugada.
+	player: Jugador, contiene los datos del jugador que realizo esta jugada.
+	minimax: bool, indica si la funcion esta siendo llamada por la funcion miniMax. En caso de ser asi, no guardara las lineas
+			que se hagan en los datos del jugador.
+	SALIDAS:
+	bool, indica si en la posicion que jugo el Jugador se realizo una linea vertical."""
 
 	turno = player.turn
 	lineaVertical = all( T[tablero][i][columna]==turno for i in range(0, len(T)) )
@@ -138,7 +179,18 @@ def hayLineaVertical(T: [[[int]]], tablero: int ,columna: int , player: Jugador,
 	return lineaVertical
 
 def hayLineaDiagonal(T: [[[int]]], tablero: int , fila: int, columna: int, player: Jugador, minimax: bool) -> bool:
-	""" Verifica si se formo una linea en la diagonal principal en la posicion donde se realizo la jugada"""
+	""" Verifica si se formo una linea en la diagonal principal en la posicion donde se realizo la jugada.
+
+	ENTRADAS:
+	T: [[[int]]], matriz tridimensional que representa al Super-Tablero.
+	tablero: int, indica el tablero donde se realizo la jugada.
+	fila: int, indica la fila donde se realizo la jugada.
+	columna: int, indica la columna donde se realizo la jugada.
+	player: Jugador, contiene los datos del jugador que realizo esta jugada.
+	minimax: bool, indica si la funcion esta siendo llamada por la funcion miniMax. En caso de ser asi, no guardara las lineas
+			que se hagan en los datos del jugador.
+	SALIDAS:
+	bool, indica si en la posicion que jugo el Jugador se realizo una linea diagonal."""
 
 	turno = player.turn
 
@@ -153,7 +205,18 @@ def hayLineaDiagonal(T: [[[int]]], tablero: int , fila: int, columna: int, playe
 	return lineaDiagonal
 
 def hayLineaDiagonalInversa(T: [[[int]]], tablero: int , fila: int, columna: int, player: Jugador, minimax: bool) -> bool:
-	""" Verifica si se formo una linea en la diagonal inversa en la posicion donde se realizo la jugada"""
+	""" Verifica si se formo una linea en la diagonal inversa en la posicion donde se realizo la jugada.
+
+	ENTRADAS:
+	T: [[[int]]], matriz tridimensional que representa al Super-Tablero.
+	tablero: int, indica el tablero donde se realizo la jugada.
+	fila: int, indica la fila donde se realizo la jugada.
+	columna: int, indica la columna donde se realizo la jugada.
+	player: Jugador, contiene los datos del jugador que realizo esta jugada.
+	minimax: bool, indica si la funcion esta siendo llamada por la funcion miniMax. En caso de ser asi, no guardara las lineas
+			que se hagan en los datos del jugador.
+	SALIDAS:
+	bool, indica si en la posicion que jugo el Jugador se realizo una linea diagonal inversa."""
 
 	turno = player.turn
 
@@ -168,7 +231,17 @@ def hayLineaDiagonalInversa(T: [[[int]]], tablero: int , fila: int, columna: int
 	return lineaDiagonal
 
 def hayLineaEnZ(T: [[[int]]], fila: int, columna: int, player: Jugador, minimax: bool) -> bool:
-	""" Verifica si se formo una linea en todos los tableros en la posicion donde se realizo la jugada"""
+	""" Verifica si se formo una linea en todos los tableros en la posicion donde se realizo la jugada.
+
+	ENTRADAS:
+	T: [[[int]]], matriz tridimensional que representa al Super-Tablero.
+	fila: int, indica la fila donde se realizo la jugada.
+	columna: int, indica la columna donde se realizo la jugada.
+	player: Jugador, contiene los datos del jugador que realizo esta jugada.
+	minimax: bool, indica si la funcion esta siendo llamada por la funcion miniMax. En caso de ser asi, no guardara las lineas
+			que se hagan en los datos del jugador.
+	SALIDAS:
+	bool, indica si en la posicion que jugo el Jugador se realizo una linea entre tableros."""
 
 	turno = player.turn
 	lineaEnZ = all( T[i][fila][columna]==turno for i in range(0, len(T)) )
@@ -179,13 +252,31 @@ def hayLineaEnZ(T: [[[int]]], fila: int, columna: int, player: Jugador, minimax:
 
 	return lineaEnZ
 
-def reflejarJugada(A: [[[int]]], tablero: int, fila: int, columna: int, turno: int):
-	""" Modifica el supertablero, reflejando la jugada realizada por cierto jugador"""
+def reflejarJugada(T: [[[int]]], tablero: int, fila: int, columna: int, turno: int):
+	"""Procedimiento que modifica el Super-Tablero, reflejando la jugada realizada por cierto jugador.
 
-	A[tablero][fila][columna] = turno
+	ENTRADAS-SALIDAS:
+	T: [[[int]]], matriz tridimensional que representa al Super-Tablero.
+	ENTRADAS:
+	tablero: int, indica el tablero donde se realizo la jugada.
+	fila: int, indica la fila donde se realizo la jugada.
+	columna: int, indica la columna donde se realizo la jugada.
+	turno: int, turno del jugador que realizo la jugada. Tambien representa la ficha del jugador en el Super-Tablero"""
+
+	T[tablero][fila][columna] = turno
 
 def hayLinea(T: [[[int]]], tablero: int, fila: int, columna: int, player: Jugador) -> str:
-	""" Verifica si se formo alguna linea, en caso de ser asi, se lo indica a los jugadores y actualiza el contador de lineas"""
+	"""Verifica si se formo alguna linea, en caso de ser asi, se lo indica a los jugadores y actualiza el contador de lineas.
+
+	ENTRADAS:
+	T: [[[int]]], matriz tridimensional que representa al Super-Tablero.
+	tablero: int, indica el tablero donde se realizo la jugada.
+	fila: int, indica la fila donde se realizo la jugada.
+	columna: int, indica la columna donde se realizo la jugada.
+	ENTRADAS-SALIDAS:
+	player: Jugador, contiene los datos del jugador que realizo esta jugada.
+	SALIDAS:
+	str, Es vacio si no se hizo ninguna linea, en caso contrario, retorna un mensaje diciendo que se realizo una linea"""
 
 	masPuntos = False # Esta variable se usa para indicarle a los jugadores si alguin hizo una o varias lineas
 
@@ -212,9 +303,19 @@ def hayLinea(T: [[[int]]], tablero: int, fila: int, columna: int, player: Jugado
 		return ""
 
 def mostarPuntajes(player1: Jugador, player2: Jugador):
-	""" Muestra graficamente el puntaje de cada jugador"""
+	"""Procedimiento que muestra graficamente el puntaje de cada jugador.
+
+	ENTRADAS:
+	player1: Jugador, contiene los datos del jugador 1.
+	player2: Jugador, contiene los datos del jugador 2."""
 
 	pantalla.blit(fondo, [0, 0]) 
+
+	# Cargamos las imagenes de la X y el O. No se hizo antes pues su tamanyo depende de la dimensaion del tablero
+	equis = pygame.image.load("Equis.png")
+	equis = pygame.transform.scale(equis, [90, 70])
+	circulo = pygame.image.load("Circulo.png")
+	circulo = pygame.transform.scale(circulo, [100, 80])
 
 	# Guardamos en vairables del tipo "surface" los datos del jugador 1
 	name1 = subtitulos.render(str(player1.nombre) + " - " + str(player1.wins), True, (0,0,0))
@@ -231,6 +332,10 @@ def mostarPuntajes(player1: Jugador, player2: Jugador):
 	PenZ2 = texto.render(str(player2.enZ), True, (0,0,0))
 
 	# Informacion del Jugador 1
+	if player1.turn == 1:
+		pantalla.blit(equis, [20, 5])
+	else:
+		pantalla.blit(circulo, [20, 5])
 	pantalla.blit(name1, [120, 20])
 	pantalla.blit(Horizontal, [10, 80])
 	pantalla.blit(Vertical, [10, 110])
@@ -242,6 +347,10 @@ def mostarPuntajes(player1: Jugador, player2: Jugador):
 	pantalla.blit(PenZ1, [560, 170])
 
 	# Informacion del Jugador 2
+	if player2.turn == 1:
+		pantalla.blit(equis, [700, 5])
+	else:
+		pantalla.blit(circulo, [700, 5])
 	pantalla.blit(name2, [800, 20])
 	pantalla.blit(Horizontal, [660, 80])
 	pantalla.blit(Vertical, [660, 110])
@@ -253,7 +362,13 @@ def mostarPuntajes(player1: Jugador, player2: Jugador):
 	pantalla.blit(PenZ2, [1200, 170])
 
 def dibujarTab(Tab: [[int]], player1: Jugador, player2: Jugador, tablero: int):
-	""" Muestra graficamente el tablero actual, con las correspondientes fichas de ambos jugadores"""
+	"""Procedimiento que muestra graficamente el tablero actual, con las correspondientes fichas de ambos jugadores.
+
+	ENTRADAS:
+	Tab: [[int]], matriz que representa al tablero actual.
+	player1: Jugador, contiene los datos del jugador 1.
+	player2: Jugador, contiene los datos del jugador 2.
+	tablero: int, numero que representa al tablero actual en el Super-Tablero."""
 
 	# Cargamos las imagenes de la X y el O. No se hizo antes pues su tamanyo depende de la dimensaion del tablero
 	equis = pygame.image.load("Equis.png")
@@ -282,11 +397,13 @@ def dibujarTab(Tab: [[int]], player1: Jugador, player2: Jugador, tablero: int):
 	# Lineas Horizontales
 	for linea in player1.lineasFila:
 		if linea[0] == tablero:
-			pygame.draw.line(pantalla, (255,((1-player1.turn)**2)*255,0), [100, 320 + (linea[1] + 1/2)*(alto/len(Tab))], [100+largo, 320 + (linea[1] + 1/2)*(alto/len(Tab))], 4)
+			pygame.draw.line(pantalla, (255,((1-player1.turn)**2)*255,0), [100, 320 + (linea[1] + 1/2)*(alto/len(Tab))],\
+			 [100+largo, 320 + (linea[1] + 1/2)*(alto/len(Tab))], 4)
 	# Lineas Verticales
 	for linea in player1.lineasCol:
 		if linea[0] == tablero:
-			pygame.draw.line(pantalla, (255,((1-player1.turn)**2)*255,0), [100 + (linea[1] + 1/2)*(largo/len(Tab)), 320], [100 + (linea[1] + 1/2)*(largo/len(Tab)), 320 + alto], 4)
+			pygame.draw.line(pantalla, (255,((1-player1.turn)**2)*255,0), [100 + (linea[1] + 1/2)*(largo/len(Tab)), 320],\
+			 [100 + (linea[1] + 1/2)*(largo/len(Tab)), 320 + alto], 4)
 	# Lineas Diagonales
 	for linea in player1.lineasDiag:
 		if (linea[0] == tablero) and (linea[1] == 1):
@@ -295,18 +412,21 @@ def dibujarTab(Tab: [[int]], player1: Jugador, player2: Jugador, tablero: int):
 			pygame.draw.line(pantalla, (255,((1-player1.turn)**2)*255,0), [100 + largo, 320], [100, 320 + alto], 4)
 	# Lineas entre Tableros
 	for linea in player1.lineasEnZ:
-		pygame.draw.rect(pantalla, (255,((1-player1.turn)**2)*255,0), [100 + linea[1]*(largo/len(Tab)), 320 + linea[0]*(alto/len(Tab)), largo/(len(Tab)), alto/(len(Tab))], 4)
+		pygame.draw.rect(pantalla, (255,((1-player1.turn)**2)*255,0), [100 + linea[1]*(largo/len(Tab)), 320 + \
+			linea[0]*(alto/len(Tab)), largo/(len(Tab)), alto/(len(Tab))], 4)
 
 
 	# Dibujamos las lineas correspondientes al Jugador 2
 	# Lineas Horizontales
 	for linea in player2.lineasFila:
 		if linea[0] == tablero:
-			pygame.draw.line(pantalla, (255,((1-player2.turn)**2)*255,0), [100, 320 + (linea[1] + 1/2)*(alto/len(Tab))], [100+largo, 320 + (linea[1] + 1/2)*(alto/len(Tab))], 4)
+			pygame.draw.line(pantalla, (255,((1-player2.turn)**2)*255,0), [100, 320 + (linea[1] + 1/2)*(alto/len(Tab))],\
+			 [100+largo, 320 + (linea[1] + 1/2)*(alto/len(Tab))], 4)
 	# Lineas Verticales
 	for linea in player2.lineasCol:
 		if linea[0] == tablero:
-			pygame.draw.line(pantalla, (255,((1-player2.turn)**2)*255,0), [100 + (linea[1] + 1/2)*(largo/len(Tab)), 320], [100 + (linea[1] + 1/2)*(largo/len(Tab)), 320 + alto], 4)
+			pygame.draw.line(pantalla, (255,((1-player2.turn)**2)*255,0), [100 + (linea[1] + 1/2)*(largo/len(Tab)), 320],\
+			 [100 + (linea[1] + 1/2)*(largo/len(Tab)), 320 + alto], 4)
 	# Lineas Diagonales
 	for linea in player2.lineasDiag:
 		if (linea[0] == tablero) and (linea[1] == 1):
@@ -315,10 +435,24 @@ def dibujarTab(Tab: [[int]], player1: Jugador, player2: Jugador, tablero: int):
 			pygame.draw.line(pantalla, (255,((1-player2.turn)**2)*255,0), [100 + largo, 320], [100, 320 + alto], 4)
 	# Lineas entre Tableros
 	for linea in player2.lineasEnZ:
-		pygame.draw.rect(pantalla, (255,((1-player2.turn)**2)*255,0), [100 + linea[1]*(largo/len(Tab)), 320 + linea[0]*(alto/len(Tab)), largo/(len(Tab)), alto/(len(Tab))], 4)
+		pygame.draw.rect(pantalla, (255,((1-player2.turn)**2)*255,0), [100 + linea[1]*(largo/len(Tab)), 320 + \
+			linea[0]*(alto/len(Tab)), largo/(len(Tab)), alto/(len(Tab))], 4)
 
 def jugada(T: [[[int]]], player1: Jugador, player2: Jugador, IndJug, Mensaje, turno: int, bot: bool) -> (int, int, int, bool):
-	"""Le pedimos a un jugador la jugada que realizara"""
+	"""Funcion que retorna la jugada que desea realizar el jugador correspondiente, junto a una expresion booleana que 
+			indica si se salio del juego o no.
+
+	ENTRADAS:
+	T: [[[int]]], matriz tridimensional que representa al Super-Tablero.
+	player1: Jugador, contiene los datos del jugador 1.
+	player2: Jugador, contiene los datos del jugador 2.
+	IndJug: Surface (pygame), contiene el mensaje que indica a quien le toca jugar.
+	Mensja: Surface (pygame), contiene el ultimo mensaje que se le desea dar a los jugadores.
+	SALIDAS:
+	int, tablero elegido por el jugador.
+	int, fila elegida por el jugador.
+	int, columan elegida por el jugador.
+	bool, es True si se decidio salir del juego sin elegir una jugada, False en caso contrario."""
 
 	# Sera el texto que se mostrara en la interfaz, e indica lo que va escribiendo el jugador
 	tablero = "0"
@@ -354,7 +488,8 @@ def jugada(T: [[[int]]], player1: Jugador, player2: Jugador, IndJug, Mensaje, tu
 					if evt.key == K_LEFT:
 						m = 0
 					if evt.key == K_RETURN and m == 0 and not bot:
-						# Se decidio a salir y guardar la partida multijugador, por lo que procedemos a guardar los datos de esta partida
+						# Se decidio a salir y guardar la partida multijugador, por lo que procedemos a guardar
+						#	 los datos de esta partida
 						with open('Datos ultPartida.txt', 'w') as f:
 							f.write(str(len(T)) + "\n")
 
@@ -390,7 +525,8 @@ def jugada(T: [[[int]]], player1: Jugador, player2: Jugador, IndJug, Mensaje, tu
 
 						return 0, 0, 0, True
 					if evt.key == K_RETURN and m == 0 and bot:
-						# Se decidio a salir y guardar la partida individual, por lo que procedemos a guardar los datos de esta partida
+						# Se decidio a salir y guardar la partida individual, por lo que procedemos a guardar los datos
+						#	 de esta partida
 						with open('Datos ultPartida Bot.txt', 'w') as f:
 							f.write(str(len(T)) + "\n")
 
@@ -560,7 +696,15 @@ def jugada(T: [[[int]]], player1: Jugador, player2: Jugador, IndJug, Mensaje, tu
 	return int(tablero), int(fila), int(columna), False
 
 def pedirJugada(T: [[[int]]], player1: Jugador, player2: Jugador, UltMen: str, turno: int, bot: bool) -> (int, int, int, bool):
-	""" Le pide al jugador que le toque jugar la jugada que desea realizar"""
+	"""Funcion que retorna la jugada que desea realizar alguno de los jugadores, junto a una expresion booleana que 
+			indica si se salio del juego o no.
+
+	ENTRADAS:
+	T: [[[int]]], matriz tridimensional que representa al Super-Tablero.
+	player1: Jugador, contiene los datos del jugador 1.
+	player2: Jugador, contiene los datos del jugador 2.
+	UltMen: str, contiene el ultimo mensaje que se le desea dar a los jugadores.
+	turno: int, indica a que jugador le toca jugar."""
 
 	IndJug1 = texto.render(player1.nombre + "  indique  su  jugada", True, (0,0,0))
 	IndJug2 = texto.render(player2.nombre + "  indique  su  jugada", True, (0,0,0))
@@ -580,7 +724,16 @@ def pedirJugada(T: [[[int]]], player1: Jugador, player2: Jugador, UltMen: str, t
 	return tablero-1, fila-1, columna-1, salir
 
 def resultado(T: [[[int]]], player1: Jugador, player2: Jugador, total1: int, total2: int) -> bool:
-	""" Muestra el resultado de la partida"""
+	"""Funcion que muestra el resultado de la partida.
+
+	ENTRADAS:
+	T: [[[int]]], matriz tridimensional que representa al Super-Tablero.
+	player1: Jugador, contiene los datos del jugador 1.
+	player2: Jugador, contiene los datos del jugador 2.
+	total1: int, cantidad de lineas realizada por el jugador 1.
+	total2: int, cantidad de lineas realizada por el jugador 2.
+	SALIDAS:
+	bool, indica si los jugadores desean jugar otra partida."""
 
 	# Variable que mueve la flecha para indicar al jugador en que tablero se encuentra
 	k = 0
@@ -640,8 +793,16 @@ def resultado(T: [[[int]]], player1: Jugador, player2: Jugador, total1: int, tot
 		pygame.display.update()
 		reloj1.tick(20)
 
-def guardarNombre(player1: Jugador, player2: Jugador, turn: int):
-	""" Guarda el nombre indicado por el usuario"""
+def guardarNombre(player1: Jugador, player2: Jugador, turn: int) -> str:
+	"""Guarda el nombre indicado por el jugador correspondiente.
+
+	ENTRADAS-SALIDAS:
+	player1: Jugador, contiene los datos del jugador 1.
+	player2: Jugador, contiene los datos del jugador 2.
+	ENTRADA:
+	turn: int, indica el turno del jugador.
+	SALIDA:
+	str, nombre que decidio el jugador."""
 
 	# Indica cuando el jugador ya termino de colocar el nombre
 	done = False
@@ -699,7 +860,14 @@ def guardarNombre(player1: Jugador, player2: Jugador, turn: int):
 		return nombre2
 
 def pantallaMultiJug(player1: Jugador, player2: Jugador) -> int:
-	""" En esta pantalla se le pide a los dos jugadores su nombre, asi como la dimension del supertablero"""
+	"""Representa una pantalla donde se jugara una partida multijugador y se le pide a los dos jugadores su nombre, 
+			asi como la dimension del supertablero.
+
+	ENTRADAS-SALIDAS:
+	player1: Jugador, contiene los datos del jugador 1.
+	player2: Jugador, contiene los datos del jugador 2.
+	SALIDAS:
+	int, dimension del Super-Tablero elegida por los jugadores."""
 
 	# Dimension del tablero
 	N = "0"
@@ -751,7 +919,13 @@ def pantallaMultiJug(player1: Jugador, player2: Jugador) -> int:
 	return int(N)
 
 def pantallaUniJug(player: Jugador) -> int:
-	""" En esta pantalla se le pide el nombre al jugador, asi como la dimension del supertablero"""
+	"""Representa una pantalla donde se jugara una partida individual y se le pide al jugador su nombre, asi como la
+			dimension del supertablero.
+
+	ENTRADAS-SALIDAS:
+	player: Jugador, contiene los datos del jugador.
+	SALIDAS:
+	int, dimension del Super-Tablero elegida por el jugador."""
 
 	# Dimension del tablero
 	N = "0"
@@ -776,7 +950,8 @@ def pantallaUniJug(player: Jugador) -> int:
 		pantalla.blit(fondo, [0, 0]) 
 		pantalla.blit(titulo, [450, 50])
 		pantalla.blit(JugadorSolo, [300, 405])
-		pantalla.blit(NumDim, [100, 575])
+		pantalla.blit(NumDim, [100, 550])
+		pantalla.blit(Recomendacion, [100, 620])
 		pantalla.blit(trianguloInv2, [180, 405])
 
 		Mensj = texto.render(mensj, True, (0,0,0))
@@ -810,9 +985,10 @@ def pantallaUniJug(player: Jugador) -> int:
 		pantalla.blit(fondo, [0, 0]) 
 		pantalla.blit(titulo, [450, 50])
 		pantalla.blit(JugadorSolo, [300, 405])
-		pantalla.blit(NumDim, [100, 575])
+		pantalla.blit(NumDim, [100, 550])
+		pantalla.blit(Recomendacion, [100, 620])
 		pantalla.blit(nombre1, [750, 405])
-		pantalla.blit(trianguloInv2, [10, 575])
+		pantalla.blit(trianguloInv2, [10, 550])
 
 		Mensj = texto.render(mensj, True, (0,0,0))
 		pantalla.blit(Mensj, [400, 320])
@@ -820,7 +996,7 @@ def pantallaUniJug(player: Jugador) -> int:
 		NAct = N
 
 		Num = nombres.render(NAct.lstrip("0"), True, (0,0,0))
-		pantalla.blit(Num, [1000, 575])
+		pantalla.blit(Num, [1000, 550])
 
 		pygame.display.update()
 		reloj1.tick(20)
@@ -828,8 +1004,11 @@ def pantallaUniJug(player: Jugador) -> int:
 
 	return int(N)
 
-def pantallaCargarPart() -> int:
-	""" En esta pantalla se le pregunta al usuario si desea cargar la ultima partida guardada"""
+def pantallaCargarPart() -> bool:
+	"""Funcion que representa una pantalla donde se le pregunta al usuario si desea cargar la ultima partida guardada.
+
+	SALIDAS:
+	bool, indica si el usuario desea cargar la ultima partida guardada."""
 
 	# Variable que mueve la flecha para indicar al jugador si esta en la opcion "si" o "no"
 	k = 0
@@ -859,18 +1038,35 @@ def pantallaCargarPart() -> int:
 		pygame.display.update()
 		reloj1.tick(20)
 
-def partida(otro: bool, T: [[[int]]], player1: Jugador, player2: Jugador, turno: int, UltMen: str, N: int, bot: bool) -> bool:
-	""" Pantalla donde se realiza una juego"""
+def partida(T: [[[int]]], player1: Jugador, player2: Jugador, turno: int, UltMen: str, bot: bool, cargado: bool) -> bool:
+	"""Pantalla donde se realiza un juego.
+
+	ENTRADAS-SALIDAS:
+	T: [[[int]]], matriz tridimensional que representa al Super-Tablero.
+	player1: Jugador, contiene los datos del jugador 1.
+	player2: Jugador, contiene los datos del jugador 2.
+	ENTRADAS:
+	turno: int, indica a que jugador le toca jugar.
+	UltMen: str, contiene el ultimo mensaje que se le desea mostrar a los jugadores.
+	bot: bool, indica si esta jugando un bot o no.
+	cargado: bool, indica si es una partida cargada.
+	SALIDAS:
+	bool, es True si se termino la partida, False en caso contrario."""
 
 	UltMen = "" # En esta variable se guardara el ultimo mensaje importante del juego
 
-	jugada = [0, 0, 0] # En esta variable se guardara la jugada de los jugadores (solo se usara para indicar cual fue la jugada del bot)
+	jugada = [0, 0, 0] # En esta variable se guardara la jugada de los jugadores (solo se usara para indicar cual fue la 
+	#						jugada del bot)
 
 	valido = True # Indica si una jugada fue valida
 
+	first = cargado # Guardamos el valor de cargado. Esta variable indicara si es el primer turno luego de cargar una partida
+
 	while quedanFichas(T):
-		if bot and valido:
+		if bot and valido and not first:
 			UltMen = actualizar(T, player1, player2, UltMen, turno, jugada)
+		elif first:
+			first = False
 
 		# Le pedimos al usuario correspondiente el taablero, fila y columna donde quiere jugar 
 		tablero, fila, columna, salir = pedirJugada(T, player1, player2, UltMen, turno, bot)
@@ -895,11 +1091,14 @@ def partida(otro: bool, T: [[[int]]], player1: Jugador, player2: Jugador, turno:
 		else:
 			return False
 
-
 	return True
 
 def pantallaPrinc() -> bool:
-	""" Pantalla principal, tiene las opciones de jugar multijugador, contra la computadora o salir del juego"""
+	"""Funcion que representa la pantalla principal, tiene las opciones de jugar multijugador, contra la computadora o 
+			salir del juego
+
+	SALIDAS:
+	bool, indica si se desea jugar una partida multijugador, o no."""
 
 	# Indica cuando el usuario ya decidio el modo de juego
 	done = False
@@ -934,7 +1133,17 @@ def pantallaPrinc() -> bool:
 		reloj1.tick(20)
 
 def actualizar(T: [[[int]]], player: Jugador, bot: Jugador, UltMen: str, turno: int, jugada: [int]) -> str:
-	"""Actualizamos momentaneamente la pantalla de la partida"""
+	"""Funcion que actualiza momentaneamente la pantalla de la partida.
+
+	ENTRADAS:
+	T: [[[int]]], matriz tridimensional que representa al Super-Tablero.
+	player: Jugador, contiene los datos del jugador.
+	bot: Jugador, contiene los datos del bot.
+	UltMen: str, contiene el ultimo mensaje que se le desea mostrar a los jugadores.
+	turno: int, indica a que jugador le toca jugar.
+	jugada: [int], contiene la ultima jugada realizada por alguno de los jugadores.
+	SALIDAS:
+	str, nuevo mensaje que se le desea mostrar a los jugadores."""
 
 	done = False # Indica si ya ha pasado cierto tiempo
 
@@ -950,7 +1159,8 @@ def actualizar(T: [[[int]]], player: Jugador, bot: Jugador, UltMen: str, turno: 
 		mostarPuntajes(player, bot)
 
 		if turno == player.turn and not supTabEmpty(T):
-			IndJug = texto.render("El  Bot  jugo  en  el  tablero  " + str(jugada[0] + 1) + ",  fila  " + str(jugada[1] + 1) + "  y  columna  " + str(jugada[2] + 1), True, (0,0,0))
+			IndJug = texto.render("El  Bot  jugo  en  el  tablero  " + str(jugada[0] + 1) + ",  fila  " + \
+				str(jugada[1] + 1) + "  y  columna  " + str(jugada[2] + 1), True, (0,0,0))
 			pantalla.blit(IndJug, [200, 200])
 		elif turno == bot.turn:
 			IndJug = texto.render("El  Bot  esta  eligiendo  su  siguiente  jugada.  Espere  por  favor...", True, (0,0,0))
@@ -975,9 +1185,11 @@ def actualizar(T: [[[int]]], player: Jugador, bot: Jugador, UltMen: str, turno: 
 		reloj1.tick(20)
 
 	if turno == player.turn and not supTabEmpty(T) and ultMen != "":
-		return ultMen + ".  El  Bot  jugo  en  el  tablero  " + str(jugada[0] + 1) + ",  fila  " + str(jugada[1] + 1) + "  y  columna  " + str(jugada[2] + 1)
+		return ultMen + "  El  Bot  jugo  en  el  tablero  " + str(jugada[0] + 1) + ",  fila  " + str(jugada[1] + 1) +\
+		 "  y  columna  " + str(jugada[2] + 1)
 	elif turno == player.turn and not supTabEmpty(T) and ultMen == "":
-		return "El  Bot  jugo  en  el  tablero  " + str(jugada[0] + 1) + ",  fila  " + str(jugada[1] + 1) + "  y  columna  " + str(jugada[2] + 1)
+		return "El  Bot  jugo  en  el  tablero  " + str(jugada[0] + 1) + ",  fila  " + str(jugada[1] + 1) +\
+		 "  y  columna  " + str(jugada[2] + 1)
 	else:
 		return ultMen
 
@@ -985,31 +1197,60 @@ def actualizar(T: [[[int]]], player: Jugador, bot: Jugador, UltMen: str, turno: 
 
 ############################## SUBPROGRAMAS CORRESPONDIENTES A LA I.A. ############################################
 def supTabEmpty(T: [[[int]]]) -> bool:
-	"""Verifica si el Super-Tablero esta vacio"""
+	"""Funcion que verifica si el Super-Tablero esta vacio.
+
+	ENTRADAS:
+	T: [[[int]]], matriz tridimensional que representa al Super-Tablero.
+	SALIDAS:
+	bool, indica si el Super-Tablero esta vacio."""
 
 	vacio = all( all( all(T[i][j][k] == 0 for k in range(0, len(T))) for j in range(0, len(T))) for i in range(0, len(T)))
 	return vacio
 
 def tabVacio(Tab: [[int]]) -> bool:
-	"""Verifica si un tablero esta vacio"""
+	"""Funcion que verifica si un tablero esta vacio.
+
+	ENTRADAS:
+	Tab: [[int]], matriz que representa al tablero.
+	SALIDAS:
+	bool, indica si el tablero esta vacio."""
 
 	vacio = all( all(Tab[i][j] == 0 for j in range(0, len(Tab)) ) for i in range(0, len(Tab)) )
 	return vacio
 
 def tabLleno(Tab: [[int]]) -> bool:
-	"""Verifica si un tablero esta lleno"""
+	"""Funcion que verifica si un tablero esta lleno.
+
+	ENTRADAS:
+	Tab: [[int]], matriz que representa al tablero.
+	SALIDAS:
+	bool, indica si el tablero esta lleno."""
 
 	lleno = all( all(Tab[i][j] != 0 for j in range(0, len(Tab)) ) for i in range(0, len(Tab)) )
 	return lleno
 
 def copiarSupTab(T: [[[int]]]) -> [[[int]]]:
-	"""Copia todo un Super-Tablero"""
+	"""Funcion que copia todo un Super-Tablero.
+
+	ENTRADAS:
+	T: [[[int]]], matriz tridimensional que representa al Super-Tablero.
+	SALIDAS:
+	[[[int]]], copia del Super-Tablero."""
 
 	M = [[[T[k][j][i] for i in range(0, len(T))] for j in range(0, len(T))] for k in range(0, len(T))]
 	return M
 
 def obtenerPuntos(T: [[[int]]], tablero: int, fila: int, columna: int, player: Jugador) -> int:
-	"""Obtenemos cuantas lineas se obtendrian en el Super-Tablero T con la jugada: tablero, fila, columna"""
+	"""Funcion que retorna cuantas lineas se obtendrian en el Super-Tablero T con la jugada: tablero, fila, columna.
+
+	ENTRADAS:
+	T: [[[int]]], matriz tridimensional que representa al Super-Tablero.
+	tablero: int, indica el tablero donde se realizo la jugada.
+	fila: int, indica la fila donde se realizo la jugada.
+	columna: int, indica la columna donde se realizo la jugada.
+	player: Jugador, contiene los datos del jugador que realizo esta jugada.
+	SALIDAS:
+	int, contiene cuantas lineas se harian con la jugada indicada."""
 
 	lineas = 0
 
@@ -1027,7 +1268,12 @@ def obtenerPuntos(T: [[[int]]], tablero: int, fila: int, columna: int, player: J
 	return lineas
 
 def tabsEmpty(T: [[[int]]]) -> bool:
-	"""Cuenta los tableros vacios en el Super-Tablero"""
+	"""Funcion que cuenta los tableros vacios en un Super-Tablero.
+
+	ENTRADAS:
+	T: [[[int]]], matriz tridimensional que representa al Super-Tablero.
+	SALIDAS:
+	int, numero de tableros vacios en el Super-Tablero."""
 
 	vacios = 0
 
@@ -1038,7 +1284,13 @@ def tabsEmpty(T: [[[int]]]) -> bool:
 	return vacios
 
 def emptyFull(T: [[[int]]]) -> bool:
-	"""Verifica si todos los tableros del Super-Tablero estan todos llenos o vacios. Si hay alguno con casillas vacias y otras ocupadas, retornara False"""
+	"""Funcion que verifica si todos los tableros del Super-Tablero estan llenos o vacios. Si hay alguno con 
+		casillas vacias y otras ocupadas, retornara False.
+
+	ENTRADAS:
+	T: [[[int]]], matriz tridimensional que representa al Super-Tablero.
+	SALIDAS:
+	bool, indica si todos los tableros del Super-Tablero estan llenos o vacios"""
 
 	emptyFull = True
 
@@ -1048,7 +1300,24 @@ def emptyFull(T: [[[int]]]) -> bool:
 	return emptyFull
 
 def miniMax(T: [[[int]]], n: int, puntos: int, player: Jugador, bot: Jugador, Max: bool, p: float, first: bool) -> [int, int, int, float]:
-	"""Algoritmo que calcula la jugada optima dado un estado del Super-Tablero actual, con una profundidad de n """
+	"""Funcion recursiva que calcula la jugada optima dado un estado del Super-Tablero actual.
+
+	ENTRADAS:
+	T: [[[int]]], matriz tridimensional que representa al Super-Tablero.
+	n: int, profundidad de la funcion. Mientras mayor sea este numero, mas recursiones realizara la funcion, y por lo tanto,
+			mas optima sera la jugada resultante. Sin embargo, tardara mas en llegar a la solucion.
+	player: Jugador, contiene los datos del jugador.
+	bot: Jugador, contiene los datos del bot.
+	Max: bool, indica si hay que maximizar la proxima jugada.
+	p: float, parametro que indica la importancia de la jugada actual. Su valor inicial debe ser 1 y va disminuyendo con cada
+			recursion de la funcion. Es decir, mientras mas futura sea la jugada, menos importancia tendra.
+	first: bool, indica si es la primera llamada de la funcion. Se usa para aumentar la importancia de las lineas hechas
+			inmediatamente
+	SALIDAS:
+	[int, int, int, float], los tres enteros indican la jugada optima (tablero, fila y columna respectivamente). Mientras
+			que el float indica la puntuacion aproximada de esta jugada.
+
+	COTA: n+1"""
 	
 	lineas = puntos # Indica cuantos puntos se harian aproximadamente realizando una jugada particular
 
@@ -1142,8 +1411,7 @@ def miniMax(T: [[[int]]], n: int, puntos: int, player: Jugador, bot: Jugador, Ma
 
 
 def main():
-	""" Funcion Principal"""
-
+	"""Subprograma Principal."""
 
 	while True:
 		# Mientras la variable otro sea True, se repetira la partida entre los dos jugadores
@@ -1356,7 +1624,7 @@ def main():
 					UltMen = ""
 
 					# Llamamos a una partida. Termino sera True si la partida llega a su final
-					termino = partida(otro, T, player1, player2, turno, UltMen, N, False)
+					termino = partida(T, player1, player2, turno, UltMen, False, cargarPartida)
 
 					# Sumamos los puntos que obtuvieron el jugador1 y el jugador2 respectivamente
 					total1 = player1.filas + player1.columnas + player1.diagonales + player1.enZ
@@ -1561,7 +1829,7 @@ def main():
 					UltMen = ""
 
 					# Llamamos a una partida. Termino sera True si la partida llega a su final
-					termino = partida(otro, T, player1, player2, turno, UltMen, N, True)
+					termino = partida(T, player1, player2, turno, UltMen, True, cargarPartida)
 
 					# Sumamos los puntos que obtuvieron el jugador1 y el jugador2 respectivamente
 					total1 = player1.filas + player1.columnas + player1.diagonales + player1.enZ
